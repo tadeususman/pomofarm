@@ -280,9 +280,23 @@ html.rm .spark,html.rm .confetti,html.rm .float{display:none}
 html.rm .zzz span{animation:none;opacity:1}
 html.rm .sheet,html.rm .scrim{transition:none}
 html.rm .dialog{animation:none}
+.tip{position:fixed;left:50%;top:calc(64px + env(safe-area-inset-top));transform:translateX(-50%);width:min(340px,calc(100% - 28px));background:var(--surface);color:var(--ink);border:1.5px solid var(--ink);border-radius:20px;padding:14px 16px;z-index:30;box-shadow:0 8px 24px rgba(0,0,0,.12);animation:tipin .35s ease both}
+.tip[hidden]{display:none}
+.tip b{display:block;font-size:15px;margin-bottom:4px}
+.tip p{margin:0 0 10px;font-size:13px;line-height:1.45;color:var(--muted)}
+.tip .row{display:flex;gap:8px}
+.tip button{flex:1;border-radius:999px;padding:9px 0;font-weight:600;font-size:14px;border:1.5px solid var(--line);background:transparent;color:var(--ink)}
+.tip button.go{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+@keyframes tipin{from{opacity:0;transform:translate(-50%,-10px)}}
+html.rm .tip{animation:none}
 </style>
 </head>
 <body>
+<div class="tip" id="tip" role="dialog" aria-label="Welcome" hidden>
+  <b>Welcome to Pomofarm</b>
+  <p>Check Settings for timer length, sounds, keep-screen-on, motion and light/dark mode. Your pets grow while you focus.</p>
+  <div class="row"><button type="button" id="tipOk">Got it</button><button type="button" class="go" id="tipSet">Open settings</button></div>
+</div>
 <div class="app">
   <div class="bar">
     <button type="button" class="icon" id="openFarm" aria-label="My farm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M3 10.5L12 4l9 6.5V20H3z"/><path d="M9.5 20v-5.5h5V20"/></svg><span class="badge" id="farmBadge"></span></button>
@@ -636,7 +650,7 @@ function petSVG(type,G,o,vb){
 /* ---------- state ---------- */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,ambience:S.ambience,worms:S.worms}));}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,ambience:S.ambience,worms:S.worms,seenTip:S.seenTip}));}catch(e){}}
 const saved=load();
 function newPet(type){return {type,name:SPECIES[type].def,sessions:0,variant:randomVariant()};}
 const S={
@@ -651,6 +665,7 @@ const S={
   mins:Object.assign({focus:25,short:5,long:15},saved.mins||{}),
   lost:saved.lost||0,
   released:saved.released||0,
+  seenTip:!!saved.seenTip,
   override:null,hatchAt:0,sadUntil:0,nextBreak:"short",
   rounds:[1,2,3,4,6,8].includes(saved.rounds)?saved.rounds:4,
   theme:["auto","light","dark"].includes(saved.theme)?saved.theme:"auto",
@@ -785,6 +800,10 @@ function openSheet(id){closeSheets();const sh=$(id);sh.classList.add("on");sh.se
 function closeSheets(){ambOff();document.querySelectorAll(".sheet").forEach(s=>{s.classList.remove("on");s.setAttribute("aria-hidden","true");});scrim.classList.remove("on");}
 $("#openFarm").addEventListener("click",()=>openSheet("#farmSheet"));
 $("#openSettings").addEventListener("click",()=>openSheet("#setSheet"));
+(function(){const tip=$("#tip");if(S.seenTip)return;tip.hidden=false;
+  const done=()=>{tip.hidden=true;S.seenTip=true;save();};
+  $("#tipOk").addEventListener("click",done);
+  $("#tipSet").addEventListener("click",()=>{done();openSheet("#setSheet");});})();
 scrim.addEventListener("click",closeSheets);
 document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",closeSheets));
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheets();});
