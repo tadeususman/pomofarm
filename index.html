@@ -567,7 +567,7 @@ const durMs=()=>S.mins[S.mode]*60000/speed();
 
 /* ---------- audio ---------- */
 let ac=null;
-function ensureAudio(){try{if(!ac){const C=window.AudioContext||window.webkitAudioContext;if(C)ac=new C();}if(ac&&ac.state==="suspended")ac.resume();}catch(e){ac=null;}}
+function ensureAudio(){try{if(!ac){const C=window.AudioContext||window.webkitAudioContext;if(C)ac=new C();}if(ac&&ac.state==="suspended")ac.resume();if(ac)loadSamples();}catch(e){ac=null;}}
 function tone(fr,at,len,vol,type,slide,bp){
   const o=ac.createOscillator(),g=ac.createGain();o.type=type||"sine";
   o.frequency.setValueAtTime(fr,at);if(slide)o.frequency.exponentialRampToValueAtTime(slide,at+len);
@@ -613,8 +613,29 @@ function vox(o){
   }
   src.connect(g);g.connect(ac.destination);osc.start(t);osc.stop(t+L+.05);
 }
+/* optional real recordings: put chick.mp3 / duck.mp3 / goose.mp3 (or .ogg/.wav) in /sounds; otherwise the synth below is used */
+const samples={};
+function loadSamples(){
+  if(!ac||loadSamples.done)return;loadSamples.done=true;
+  if(!/^https?:$/.test(location.protocol))return;
+  ["chick","duck","goose"].forEach(async t=>{
+    for(const ext of ["mp3","ogg","wav","m4a"]){
+      try{const r=await fetch(`sounds/${t}.${ext}`);if(!r.ok)continue;samples[t]=await ac.decodeAudioData(await r.arrayBuffer());return;}catch(e){}
+    }
+  });
+}
+function playSample(buf,G,mult,type){
+  const n=ac.currentTime+.01,gr=clamp(((G||1)-1)/3),src=ac.createBufferSource(),g=ac.createGain();
+  src.buffer=buf;
+  const rate=lerp(type==="goose"?1.5:1.7,.9,Math.pow(gr,.8))*(.96+Math.random()*.08);
+  src.playbackRate.value=rate;
+  const dur=Math.min(buf.duration/rate,lerp(.6,1.4,gr)),vol=lerp(.35,.9,gr)*(mult||1);
+  g.gain.setValueAtTime(vol,n);g.gain.setValueAtTime(vol,n+Math.max(0,dur-.15));g.gain.linearRampToValueAtTime(0,n+dur);
+  src.connect(g);g.connect(ac.destination);src.start(n);src.stop(n+dur+.05);
+}
 function voice(type,G,mult){
   if(!ac)return;
+  if(samples[type]){try{playSample(samples[type],G,mult,type);return;}catch(e){}}
   try{
     const n=ac.currentTime+.01,gr=clamp(((G||1)-1)/3),vol=lerp(.08,.2,gr)*(mult||1),j=.95+Math.random()*.1;
     if(type==="goose"){
@@ -889,22 +910,26 @@ function renderSide(){
 })();
 function updateFarm(dt){
   if(!farmPets.length||!$("#farmSheet").classList.contains("on")) return;
-  for(let i=feedSpots.length-1;i>=0;i--){const sp=feedSpots[i];sp.age+=dt;if(sp.n<=0||sp.age>14){sp.grains.forEach(g=>g.remove());feedSpots.splice(i,1);}}
+  for(let i=feedSpots.length-1;i>=0;i--){const sp=feedSpots[i];sp.age+=dt;if(sp.n<=0||sp.age>180){sp.grains.forEach(g=>g.remove());feedSpots.splice(i,1);}}
   farmPets.forEach((fp,idx)=>{
     fp.t+=dt;fp.timer-=dt;
     if(fp.fo===undefined){fp.fo=((idx%5)-2)*7+(Math.random()*2-1);fp.lo=(idx%2?-1:1)*(2+Math.random()*4);}
     if(feedSpots.length&&!reduced){
       if(!fp.feed||fp.feed.n<=0){
         let best=null,bd=1e9;
-        feedSpots.forEach(sp=>{if(sp.n>0){const d=Math.abs(sp.x-fp.x);if(d<bd&&d<52){bd=d;best=sp;}}});
+        feedSpots.forEach(sp=>{if(sp.n>0){const d=Math.abs(sp.x-fp.x);if(d<bd){bd=d;best=sp;}}});
         if(best&&!fp.feed&&fp.hopT<0&&Math.random()<.5)fp.hopT=fp.t;
         fp.feed=best;
         if(!best){fp.state="idle";fp.timer=.8+Math.random();}
       }
       if(fp.feed){
-        const tx=Math.min(92,Math.max(8,fp.feed.x+fp.fo)),dx=tx-fp.x;
-        if(Math.abs(dx)>2){fp.state="run";fp.dir=dx<0?-1:1;}else fp.state="peck";
-        const tl=Math.min(34,Math.max(4,fp.feed.lane+fp.lo));
+        const gs=fp.feed.grains;
+        if(!fp.gr||!gs.includes(fp.gr)){fp.gr=gs.length?gs[idx%gs.length]:null;fp.side=0;}
+        const gx=fp.gr?parseFloat(fp.gr.style.left):fp.feed.x,gl=fp.gr?parseFloat(fp.gr.style.bottom):fp.feed.lane;
+        if(!fp.side)fp.side=fp.x<gx?-1:1;
+        const tx=Math.min(92,Math.max(8,gx+fp.side*4.5)),dx=tx-fp.x;
+        if(Math.abs(dx)>2){fp.state="run";fp.dir=dx<0?-1:1;}else{fp.state="peck";fp.dir=-fp.side;}
+        const tl=Math.min(34,Math.max(4,gl));
         fp.lane+=(tl-fp.lane)*Math.min(1,dt*3);
         fp.el.style.bottom=fp.lane.toFixed(2)+"%";fp.el.style.zIndex=String(40-Math.round(fp.lane));
       }
@@ -948,7 +973,7 @@ function updateFarm(dt){
     // peck in a rhythm while in peck state
     let peck=0;
     if(!night&&fp.state==="peck"&&fp.peckT<0)fp.peckT=fp.t;
-    if(fp.peckT>=0){const k=(fp.t-fp.peckT)/.42;if(k>=1){if(fp.feed&&fp.state==="peck"&&Math.abs(fp.feed.x+fp.fo-fp.x)<4&&fp.feed.n>0){fp.feed.n--;const g=fp.feed.grains.pop();if(g)g.remove();}fp.peckT=fp.state==="peck"&&(fp.feed||fp.goal||Math.random()<.6)?fp.t+(fp.goal&&!fp.feed?.5:.15):-1;}else if(k>0)peck=Math.sin(k*Math.PI);}
+    if(fp.peckT>=0){const k=(fp.t-fp.peckT)/.42;if(k>=1){if(fp.feed&&fp.state==="peck"&&fp.gr&&fp.feed.grains.includes(fp.gr)&&Math.abs(parseFloat(fp.gr.style.left)+fp.side*4.5-fp.x)<3){const gi=fp.feed.grains.indexOf(fp.gr);fp.feed.grains.splice(gi,1);fp.gr.remove();fp.feed.n=fp.feed.grains.length;fp.gr=null;}fp.peckT=fp.state==="peck"&&(fp.feed||fp.goal||Math.random()<.6)?fp.t+(fp.goal&&!fp.feed?.5:.15):-1;}else if(k>0)peck=Math.sin(k*Math.PI);}
     let hop=0,flap=0;
     if(fp.hopT>=0){const k=(fp.t-fp.hopT)/.55;if(k>=1)fp.hopT=-1;else{hop=Math.sin(k*Math.PI)*14;flap=Math.sin(k*Math.PI*4)*.5+.5;}}
     const face=fp.face;
