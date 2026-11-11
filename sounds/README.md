@@ -8,3 +8,7 @@ Extra variants are picked up automatically (`duck2.mp3`, `duck3.mp3` ... up to 6
 Use short clips (under ~1.5 s) with little silence at the start. The app plays them higher and quieter for babies and lower and louder for adults.
 
 Chick peeps cut from "short chick sound" by nikin, the quack from "duck quack" by iedurodrigues, and the honks from "goose 2" (freesound_community), all from Pixabay.
+
+Stage-specific recordings: `<animal>-baby.mp3` and `<animal>-teen.mp3` (plus `-teen2.mp3` ...) are used for that growth stage as they are, without pitch shifting.
+If a stage has no file of its own, the adult recording is used (pitched up for babies). Currently: `duck-baby`, `duck-teen` (4), `goose-teen` (4). Baby geese still use the pitched adult honk.
+Extra credits: baby duck "quack" by baby_duck_stu9, "natural duck" by sahidullah, "goose honking" by jasonlee3071 (all Pixabay).
