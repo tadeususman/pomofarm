@@ -391,7 +391,7 @@ function petParts(type,form,o,G){
   const duck=type==="duck",goose=type==="goose",web=duck||goose,V=VARIANTS[o.variant]||VARIANTS.white,uid="c"+(uidN++%5000);
   const darkFace=!!(V.dark||V.head),faceInk=darkFace?PAPER:INK,col=V.body;
   const tailFill=(V.head||V.dark)?V.tail:col,wingFill=V.dark?"#4A4944":(V.wing||col);
-  const combFill=V.dark?"#4A4944":TINT,beakFill=darkFace?TINT:INK;
+  const combFill=V.dark?"#4A4944":TINT,beakFill=darkFace?TINT:INK,beakLine=darkFace?TINT:LINE;
   const t=o.t||0,ph=t*9,walk=!!o.walk;
   const bobAmp=form===0?1.3:form===1?1.4:1.6;
   const b=(walk?Math.abs(Math.sin(ph))*bobAmp:Math.sin(t*2.2)*(o.sleep?.9:.4)+.4);
@@ -437,7 +437,7 @@ function petParts(type,form,o,G){
     if(V.head)body+=`<path d="M${50-R} ${f(cy-2)}A${R} ${R} 0 0 1 ${50+R} ${f(cy-2)}Z" fill="${V.head}"/>`;
     body+=wing(48,cy+1,.8,2.2);
     body+=(goose?cheek(62,cy+6):cheek(61,cy+5))+eye(59,cy-1,3.2);
-    body+=goose?`<ellipse cx="71" cy="${f(cy+3)}" rx="8" ry="3.8" fill="${TINT}" ${S} stroke-width="2.2"/>`:duck?`<ellipse cx="69" cy="${f(cy+4)}" rx="7" ry="3.6" fill="${TINT}" ${S} stroke-width="2.2"/>`:`<path d="M65 ${f(cy)}L74 ${f(cy+4)}L65 ${f(cy+8)}Z" fill="${beakFill}" stroke="${beakFill}" stroke-width="1.4" ${sw}/>`;
+    body+=goose?`<ellipse cx="71" cy="${f(cy+3)}" rx="8" ry="3.8" fill="${TINT}" ${S} stroke-width="2.2"/>`:duck?`<ellipse cx="69" cy="${f(cy+4)}" rx="7" ry="3.6" fill="${TINT}" ${S} stroke-width="2.2"/>`:`<path d="M65 ${f(cy)}L74 ${f(cy+4)}L65 ${f(cy+8)}Z" fill="${beakFill}" stroke="${beakLine}" stroke-width="2" ${sw}/>`;
     if(!o.noCap){const ck=goose?31:30;body+=`<path d="M33 ${f(cy-6)}L39 ${f(cy-14)}L45 ${f(cy-8)}L51 ${f(cy-16)}L57 ${f(cy-8)}L63 ${f(cy-14)}L67 ${f(cy-6)}C66 ${f(cy-ck)} 34 ${f(cy-ck)} 33 ${f(cy-6)}Z" fill="${cap}" ${S} stroke-width="3.2" ${sw}/>`;}
   }else if(form===1&&goose){
     body+=`<g transform="translate(0 ${f(-b)})">`;
@@ -456,7 +456,7 @@ function petParts(type,form,o,G){
     body+=`<circle cx="66" cy="${f(46-bb)}" r="15" fill="${V.head||col}" ${S} stroke-width="3.2"/><circle cx="57" cy="${f(56-bb)}" r="10" fill="${col}"/>`;
     body+=`<g transform="translate(21 ${f(29-bb)}) scale(.6)"><g transform="rotate(${f(wsw*.8)} 56 52)"><path d="${wingPath(48,52,1)}" fill="${wingFill}" ${S} stroke-width="3.4" ${sw}/></g></g>`;
     body+=cheek(73,52-bb)+eye(70,44-bb,2.9);
-    body+=duck?`<ellipse cx="86" cy="${f(47-bb)}" rx="8.5" ry="4.2" fill="${TINT}" ${S} stroke-width="2.3"/>`:`<path d="M80 ${f(41-bb)}L90 ${f(45-bb)}L80 ${f(49-bb)}Z" fill="${beakFill}" stroke="${beakFill}" stroke-width="1.5" ${sw}/>`;
+    body+=duck?`<ellipse cx="86" cy="${f(47-bb)}" rx="8.5" ry="4.2" fill="${TINT}" ${S} stroke-width="2.3"/>`:`<path d="M80 ${f(41-bb)}L90 ${f(45-bb)}L80 ${f(49-bb)}Z" fill="${beakFill}" stroke="${beakLine}" stroke-width="2" ${sw}/>`;
   }else{
     const c=ADULT[type],phi=o.phi||0,tilt=o.tilt||0,dip=o.dip||0,dy=(duck?4:0)-b;
     const F=(x,y)=>featPt(c,x,y,phi);
@@ -471,7 +471,7 @@ function petParts(type,form,o,G){
     const ck=goose?F(69,21):F(70,34),ey=goose?F(65,13):F(66,26);
     body+=cheek(ck[0],ck[1])+eye(ey[0],ey[1],goose?2.9:3);
     if(goose||duck){const bl=goose?[82,18,10.5,4.8]:[82,31,9,4.4],q=F(bl[0],bl[1]);body+=`<ellipse cx="${f(q[0])}" cy="${f(q[1])}" rx="${bl[2]}" ry="${bl[3]}" transform="rotate(${f(phi)} ${f(q[0])} ${f(q[1])})" fill="${TINT}" ${S} stroke-width="2.4"/>`;}
-    else{const t3=[[75,24],[87,29],[75,34]].map(([x,y])=>{const q=F(x,y);return f(q[0])+" "+f(q[1]);});body+=`<path d="M${t3[0]}L${t3[1]}L${t3[2]}Z" fill="${beakFill}" stroke="${beakFill}" stroke-width="1.5" ${sw}/>`;}
+    else{const t3=[[75,24],[87,29],[75,34]].map(([x,y])=>{const q=F(x,y);return f(q[0])+" "+f(q[1]);});body+=`<path d="M${t3[0]}L${t3[1]}L${t3[2]}Z" fill="${beakFill}" stroke="${beakLine}" stroke-width="2" ${sw}/>`;}
     body+=`</g>`;
   }
   return {legs,body};
@@ -1003,7 +1003,7 @@ function countWorm(){
   S.worms.n++;S.worms.total=(S.worms.total||0)+1;save();
 }
 function seedsWorld(){
-  let o="";SEEDS.forEach(([x,dy],i)=>{if(seedsLeft>i)o+=`<ellipse cx="${x}" cy="${GROUND+dy-2}" rx="2" ry="1.3" fill="${INK}" transform="rotate(${i*40} ${x} ${GROUND+dy-2})"/>`;});
+  let o="";SEEDS.forEach(([x,dy],i)=>{if(seedsLeft>i)o+=`<ellipse cx="${x}" cy="${GROUND+dy-2}" rx="2" ry="1.3" fill="${LINE}" transform="rotate(${i*40} ${x} ${GROUND+dy-2})"/>`;});
   return o;
 }
 let seedsLeft=12;
