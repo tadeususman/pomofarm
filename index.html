@@ -525,7 +525,7 @@ function petParts(type,form,o,G){
 }
 function drawPet(type,G,o){
   o=o||{};
-  const mix=formMix(G,o),hop=o.hop||0,pk=o.peck||0;
+  const mix=formMix(G,o),hop=o.hop||0,pk=o.peck||0,rs=ss(o.rest||0);
   let s=0;mix.forEach(([k,a])=>{s+=a*sizeF(k,G);});
   const sh=`<ellipse cx="100" cy="${GROUND+2}" rx="${f(28*s*(1-hop/70))}" ry="${f(3+3*s)}" fill="${LINE}" opacity=".1"/>`;
   let inner="";
@@ -538,7 +538,9 @@ function drawPet(type,G,o){
       else{const P=peckOf(type,form);po=Object.assign({},o,{nod:P.nd*pk,nx:P.nx,ny:P.ny});pose=`translate(0 ${f(P.dip*pk)}) rotate(${f(P.th*pk)} ${P.px} 98)`;}
     }
     const parts=petParts(type,form,po,G);
-    inner+=`<g${a<.999?` opacity="${a.toFixed(3)}"`:""} transform="${tr}"><g transform="${pose}">${parts.legs}${parts.body}</g></g>`;
+    if(rs>0)pose=`translate(0 ${f(7*rs)}) `+pose;
+    const lg=rs>0?`<g opacity="${(1-rs).toFixed(3)}">${parts.legs}</g>`:parts.legs;
+    inner+=`<g${a<.999?` opacity="${a.toFixed(3)}"`:""} transform="${tr}"><g transform="${pose}">${lg}${parts.body}</g></g>`;
   });
   return sh+`<g transform="translate(0 ${f(-hop)})">`+WORLD(inner)+`</g>`;
 }
@@ -1019,7 +1021,6 @@ function curG(){
 function updateUI(){
   const focus=S.mode==="focus",st=S.status,active=st==="running"||st==="paused",p=S.pet,sp=SPECIES[p.type];
   document.querySelectorAll(".tabs button").forEach(b=>{const on=b.dataset.mode===S.mode||(b.dataset.mode==="short"&&S.mode==="long");b.setAttribute("aria-pressed",String(on));b.disabled=active&&!on;});
-    stage.classList.toggle("sleep",st==="paused");
   const canPick=p.sessions===0&&!active;
   document.querySelectorAll(".species").forEach(b=>{b.setAttribute("aria-pressed",String(b.dataset.type===p.type));b.disabled=!canPick;});
   $("#speciesNote").textContent=canPick?"":`You can pick a new egg after ${p.name} grows up.`;
@@ -1084,15 +1085,21 @@ function runningMsg(G,p){
   if(G<1) return G<.3?"The egg is warm. Keep focusing.":G<.55?"Something's wiggling inside.":G<.8?"A crack! Keep going.":"It's about to hatch!";
   return `${p.name} is growing…`;
 }
+let napT=0,rest=0;const NAP_AFTER=10;
 let lastTimeStr="",last=0,clock=0,lastG=null,lastForm=null,formFade=null;
 let RAF=f=>requestAnimationFrame(f),curLoop=null,loopGen=0;
 function startLoop(win){const g=++loopGen;curLoop=()=>{if(g!==loopGen)return;frame(performance.now());};RAF=f=>win.requestAnimationFrame(f);win.requestAnimationFrame(curLoop);}
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000||0);last=now;
-  const st=S.status,focus=S.mode==="focus",sleeping=st==="paused";
+  const st=S.status,focus=S.mode==="focus";
   clock+=dt*(reduced?0:1);
   if(st==="running"){S.remaining=Math.max(0,S.endAt-Date.now());if(S.remaining<=0)complete();}
   const p=shownPet(),G=curG();
+  // naps: paused, or after a few seconds of a running break
+  if(focus||st==="idle")napT=0;else if(st==="running")napT+=dt;
+  const sleeping=G>=1&&!S.override&&(st==="paused"||napT>NAP_AFTER);
+  rest=clamp(rest+(sleeping?dt/.9:-dt/.45));
+  stage.classList.toggle("sleep",sleeping&&rest>.6);
   // behaviours
   if(clock>beh.nextBlink){beh.blinkT=clock;beh.nextBlink=clock+2+Math.random()*3.5;}
   const blink=clock-beh.blinkT<.14?1:0;
@@ -1133,11 +1140,11 @@ function frame(now){
     lastForm=fm;
     let mix=null;
     if(formFade){const a=ss((now-formFade.t0)/1400);if(a>=1)formFade=null;else mix=[[formFade.from,1-a],[fm,a]];}
-    svg=drawPet(p.type,G,{variant:p.variant,t:clock,blink,peck:Math.max(peck,wormPeck),hop,flap,sleep:sleeping,sad,seeds:false,happy:hop>4||wormHappy,walk:walking,mix});
+    svg=drawPet(p.type,G,{variant:p.variant,t:clock,blink,peck:Math.max(peck,wormPeck),hop,flap,sleep:sleeping,sad,seeds:false,happy:hop>4||wormHappy,walk:walking,mix,rest});
   }
   const mx=mover.x-100;
   const dir=G<1||(S.hatchAt&&hatchK<1)?1:mover.dir;
-  petG.innerHTML=(breakMode&&G>=1?seedsWorld():"")+`<g transform="translate(${f(mx+100)} 0) scale(${dir} 1) translate(-100 0)">${svg}</g>`+wormSvg;
+  petG.innerHTML=(breakMode&&G>=1&&!sleeping?seedsWorld():"")+`<g transform="translate(${f(mx+100)} 0) scale(${dir} 1) translate(-100 0)">${svg}</g>`+wormSvg;
   const pct=((mover.x-30)/340*100).toFixed(2)+"%";
   $("#petHit").style.left=pct;$(".zzz").style.left="calc("+pct+" + 6%)";petPct=(mover.x-30)/340*100;
     chip.textContent=p.name;
@@ -1167,6 +1174,7 @@ $("#petHit").addEventListener("click",()=>{
   ensureAudio();
   if(curG()<1&&!S.override){beh.tapWob=8;return;}
   if(S.status==="paused") return;
+  if(napT>NAP_AFTER)napT=0;
   beh.hopT=clock;cheep();floatAt(HEART(true),petPct,30,3);
 });
 nameEl.addEventListener("input",()=>{S.pet.name=nameEl.value.trim()||SPECIES[S.pet.type].def;save();chip.textContent=S.pet.name;});
