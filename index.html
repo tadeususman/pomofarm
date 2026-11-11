@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pomofarm</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#FAFAF9">
+<meta name="theme-color" content="#FAFAF9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151514" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Pomofarm">
@@ -1198,6 +1199,8 @@ function applyTheme(){
   else if(S.theme==="light")dark=false;
   else{const h=document.documentElement.getAttribute("data-theme");dark=h?h==="dark":!!(mq&&mq.matches);}
   document.documentElement.classList.toggle("pf-dark",dark);
+  /* status bar / navigation bar follow the chosen theme, not only the system one */
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.setAttribute("content",dark?"#151514":"#FAFAF9"));
   if(typeof artReady!=="undefined"&&artReady)buildSpecies();
   syncPip();
   document.querySelectorAll("[data-theme-pick]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.themePick===S.theme)));
