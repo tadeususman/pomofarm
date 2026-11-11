@@ -91,7 +91,7 @@ button,.fpet,.pet-hit,.stage,#farm,svg{-webkit-tap-highlight-color:rgba(0,0,0,0)
 .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
 .text-btn{border:0;background:none;color:var(--muted);font-size:14px;font-weight:600;padding:8px 12px;border-radius:999px}
 /* phone in landscape: pet on the left, timer and buttons on the right */
-@media (orientation:landscape) and (max-height:540px){
+@media (orientation:landscape) and (max-height:540px),(min-width:900px) and (min-height:541px){
   .app:not(.mini){max-width:none;height:100%;min-height:0;padding:8px max(24px,env(safe-area-inset-right)) 8px max(24px,env(safe-area-inset-left));display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-rows:auto repeat(5,auto);align-content:center;column-gap:28px;row-gap:2px;justify-items:center}
   .app:not(.mini) .bar{grid-column:1 / -1;grid-row:1}
   .app:not(.mini) .stage{grid-column:1;grid-row:2 / span 5;align-self:center;width:100%;margin:0;transform:scale(1.4);transform-origin:50% 62%}
@@ -101,9 +101,23 @@ button,.fpet,.pet-hit,.stage,#farm,svg{-webkit-tap-highlight-color:rgba(0,0,0,0)
   .app:not(.mini) .status{grid-column:2;grid-row:5;min-height:36px}
   .app:not(.mini) .actions{grid-column:2;grid-row:6;margin-top:4px}
   .app:not(.mini) .btn{padding:12px 0}
+}
+@media (orientation:landscape) and (max-height:540px){
   .sheet{max-height:94%;width:min(640px,100%)}
   .farm{flex:none;height:210px}
 }
+/* desktop: roomier two-column layout */
+@media (min-width:900px) and (min-height:541px){
+  .app:not(.mini){max-width:1040px;margin:0 auto;padding:28px 32px;column-gap:64px;row-gap:4px}
+  .app:not(.mini) .time{font-size:96px;margin-top:10px}
+  .app:not(.mini) .who b{font-size:22px}
+  .app:not(.mini) .status{font-size:16px;min-height:44px;max-width:34ch}
+  .app:not(.mini) .actions{margin-top:12px}
+  .app:not(.mini) .btn{width:min(280px,100%);padding:16px 0}
+  .app:not(.mini) .stage{transform:scale(1.75);transform-origin:50% 62%}
+  .sheet{width:min(560px,100%)}
+}
+
 .app.mini{padding:6px 12px 12px;max-width:none;min-height:100vh;justify-content:center;gap:2px}
 .app.mini .stage{margin-top:0}
 .app.mini .time{font-size:52px;margin-top:8px}
