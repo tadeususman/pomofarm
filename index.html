@@ -182,6 +182,8 @@ html.pf-dark #themeBtn .moon{display:none}html.pf-dark #themeBtn .sun{display:bl
 .switch input{width:18px;height:18px;accent-color:var(--ink)}
 .farm{position:relative;height:250px;border-radius:18px;overflow:hidden;border:1.5px solid var(--ink);background:linear-gradient(180deg,transparent 0 44%,var(--ink) 44% calc(44% + 1.5px),var(--soft) calc(44% + 1.5px) 100%)}
 .farm .barn{position:absolute;left:4%;bottom:calc(56% - 2px);width:130px}
+.farm .tree.t2{right:23%;width:36px}
+.farm .tree.t3{right:38%;width:29px}
 .farm .tree{position:absolute;right:7%;bottom:calc(56% - 2px);width:46px}
 .farm .rails{position:absolute;left:40%;right:2%;bottom:calc(56% + 5px);height:9px;display:flex;flex-direction:column;justify-content:space-between}
 .farm .rails i{display:block;height:1.8px;background:var(--ink);border-radius:1px}
@@ -191,6 +193,28 @@ html.pf-dark #themeBtn .moon{display:none}html.pf-dark #themeBtn .sun{display:bl
 .fpet svg{width:100%;height:100%;display:block;overflow:visible}
 .fpet,.fpet .sv{overflow:visible}
 .farm{cursor:pointer}
+/* sky: drifting clouds and passing birds (behind the barn and tree) */
+.sky{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.sky .m{position:absolute;left:0;width:100%}
+.sky .m>svg,.sky .m>span{position:absolute;left:0;top:0}
+.sky .cl{height:auto;overflow:visible}
+.sky .cl path{fill:#FAFAF9;stroke:#23221F;stroke-width:1.8;stroke-linejoin:round}
+.sky .bd{width:15px;height:8px;overflow:visible;animation:flap .6s ease-in-out infinite;transform-origin:50% 100%}
+.sky .bd path{fill:none;stroke:#23221F;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sky .m>span{width:15px;height:8px;display:block}
+.sky .c1{top:9%;animation:drift 95s linear infinite;animation-delay:-30s}
+.sky .c2{top:22%;animation:drift 140s linear infinite;animation-delay:-90s}
+.sky .c3{top:5%;animation:drift 120s linear infinite;animation-delay:-8s}
+.sky .b1{top:14%;animation:fly 46s linear infinite;animation-delay:-6s}
+.sky .b2{top:27%;animation:flyback 71s linear infinite;animation-delay:-40s}
+.sky .b2 .bd{animation-duration:.5s}
+@keyframes drift{from{transform:translateX(-24%)}to{transform:translateX(104%)}}
+@keyframes fly{0%{transform:translate(-12%,6px)}22%{transform:translate(106%,-14px)}100%{transform:translate(106%,-14px)}}
+@keyframes flyback{0%{transform:translate(106%,0) scaleX(1)}18%{transform:translate(-12%,-10px)}100%{transform:translate(-12%,-10px)}}
+@keyframes flap{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.35)}}
+html.rm .sky .m{animation:none;transform:translateX(var(--x,0))}
+html.rm .sky .b1,html.rm .sky .b2{display:none}
+html.rm .sky .bd{animation:none}
 .farm .trough{position:absolute;left:72%;bottom:12%;width:64px;transform:translateX(-50%);z-index:28;pointer-events:none}
 .grain{position:absolute;width:5px;height:3.5px;border-radius:50%;background:#23221F;pointer-events:none;animation:gdrop .35s ease-out both}
 @keyframes gdrop{from{transform:translate(-50%,-34px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
@@ -200,6 +224,8 @@ html.pf-dark #themeBtn .moon{display:none}html.pf-dark #themeBtn .sun{display:bl
 @keyframes hop{50%{margin-bottom:14px}}
 .farm-empty{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:80%;text-align:center;color:var(--muted);font-size:14px}
 .roster{display:flex;flex-wrap:wrap;gap:6px}
+.roster .rel,.roster .ask button{border:0;background:none;color:var(--muted);font:inherit;font-size:12px;text-decoration:underline;padding:8px 8px;margin:-8px -6px -8px 0}
+.roster .ask{background:var(--ink);color:var(--bg)}.roster .ask button{color:var(--bg);font-weight:700}
 .roster span{font-size:13px;background:var(--soft);border-radius:999px;padding:4px 10px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .stat{background:var(--soft);border-radius:14px;padding:12px}
@@ -304,14 +330,15 @@ html.rm .dialog{animation:none}
 <section class="sheet" id="farmSheet" aria-labelledby="farmTitle" aria-hidden="true">
   <div class="grab"></div>
   <div class="sheet-head"><h2 id="farmTitle">My farm</h2><button type="button" class="text-btn" data-close>Done</button></div>
-  <div class="farm" id="farm"><div class="rails"><i></i><i></i></div><div class="posts"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><svg class="barn" viewBox="0 0 140 98" aria-hidden="true"><g stroke="#23221F" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+  <div class="farm" id="farm"><div class="sky" aria-hidden="true"><div class="m c1" style="--x:12%"><svg class="cl" style="width:64px" viewBox="0 0 80 36" aria-hidden="true"><path d="M15 31Q3 31 5 21Q7 13 17 15Q19 5 31 5Q43 3 47 13Q53 7 63 13Q73 15 71 25Q77 31 67 31Z"/></svg></div><div class="m c2" style="--x:58%"><svg class="cl" style="width:46px" viewBox="0 0 80 36" aria-hidden="true"><path d="M15 31Q3 31 5 21Q7 13 17 15Q19 5 31 5Q43 3 47 13Q53 7 63 13Q73 15 71 25Q77 31 67 31Z"/></svg></div><div class="m c3" style="--x:80%"><svg class="cl" style="width:34px" viewBox="0 0 80 36" aria-hidden="true"><path d="M15 31Q3 31 5 21Q7 13 17 15Q19 5 31 5Q43 3 47 13Q53 7 63 13Q73 15 71 25Q77 31 67 31Z"/></svg></div><div class="m b1"><svg class="bd" viewBox="0 0 24 12" aria-hidden="true"><path d="M2 9Q7 0 12 8Q17 0 22 9"/></svg><span style="left:-18px;top:9px"><svg class="bd" viewBox="0 0 24 12" aria-hidden="true"><path d="M2 9Q7 0 12 8Q17 0 22 9"/></svg></span><span style="left:-34px;top:-3px"><svg class="bd" viewBox="0 0 24 12" aria-hidden="true"><path d="M2 9Q7 0 12 8Q17 0 22 9"/></svg></span></div><div class="m b2"><svg class="bd" viewBox="0 0 24 12" aria-hidden="true"><path d="M2 9Q7 0 12 8Q17 0 22 9"/></svg></div></div><div class="rails"><i></i><i></i></div><div class="posts"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><svg class="barn" viewBox="0 0 140 98" aria-hidden="true"><g stroke="#23221F" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
 <path d="M108 96V40Q120 24 132 40V96Z" fill="#FAFAF9"/><path d="M108 56H132M108 72H132M108 88H132" fill="none" stroke-width="1.4" opacity=".55"/>
 <path d="M10 46L55 15L100 46V96H10Z" fill="#FAFAF9"/>
 <path d="M4 48L55 9L106 48" fill="none" stroke-width="6"/>
 <rect x="46" y="31" width="18" height="12" rx="1.5" fill="#EAEAE8"/>
 <rect x="35" y="58" width="40" height="38" fill="#EAEAE8"/><path d="M35 58L75 96M75 58L35 96M55 58V96" fill="none" stroke-width="1.6"/>
 <rect x="16" y="60" width="12" height="12" fill="#EAEAE8"/><rect x="82" y="60" width="12" height="12" fill="#EAEAE8"/>
-</g></svg><svg class="tree" viewBox="0 0 60 90" aria-hidden="true"><g stroke="#23221F" stroke-width="2.2" stroke-linejoin="round"><path d="M30 88V52" stroke-linecap="round"/><path d="M30 64L22 56M30 60L38 52" stroke-width="1.6" stroke-linecap="round"/><path d="M30 6C46 6 54 18 52 30C58 38 52 52 40 52H20C8 52 2 38 8 30C6 18 14 6 30 6Z" fill="#EAEAE8"/></g></svg><svg class="trough" viewBox="0 0 64 34" aria-hidden="true"><g stroke="#23221F" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M12 24v7M52 24v7" fill="none"/><path d="M5 9H59L53 28H11Z" fill="#FAFAF9"/><path d="M5 9Q32 15 59 9Q32 3 5 9Z" fill="#D4D4D2"/><path d="M20 10q4 2 8 0M36 9q4 2 8 0" fill="none" stroke-width="1.4"/></g></svg><div id="farmPets"></div></div>
+</g></svg><svg class="tree" viewBox="0 0 60 90" aria-hidden="true"><g stroke="#23221F" stroke-width="2.2" stroke-linejoin="round"><path d="M30 88V52" stroke-linecap="round"/><path d="M30 64L22 56M30 60L38 52" stroke-width="1.6" stroke-linecap="round"/><path d="M30 6C46 6 54 18 52 30C58 38 52 52 40 52H20C8 52 2 38 8 30C6 18 14 6 30 6Z" fill="#EAEAE8"/></g></svg><svg class="tree t2" viewBox="0 0 60 90" aria-hidden="true"><g stroke="#23221F" stroke-width="2.2" stroke-linejoin="round"><path d="M30 88V52" stroke-linecap="round"/><path d="M30 64L22 56M30 60L38 52" stroke-width="1.6" stroke-linecap="round"/><path d="M30 6C46 6 54 18 52 30C58 38 52 52 40 52H20C8 52 2 38 8 30C6 18 14 6 30 6Z" fill="#EAEAE8"/></g></svg><svg class="tree t3" viewBox="0 0 60 90" aria-hidden="true"><g stroke="#23221F" stroke-width="2.2" stroke-linejoin="round"><path d="M30 88V52" stroke-linecap="round"/><path d="M30 64L22 56M30 60L38 52" stroke-width="1.6" stroke-linecap="round"/><path d="M30 6C46 6 54 18 52 30C58 38 52 52 40 52H20C8 52 2 38 8 30C6 18 14 6 30 6Z" fill="#EAEAE8"/></g></svg><svg class="trough" viewBox="0 0 64 34" aria-hidden="true"><g stroke="#23221F" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M12 24v7M52 24v7" fill="none"/><path d="M5 9H59L53 28H11Z" fill="#FAFAF9"/><path d="M5 9Q32 15 59 9Q32 3 5 9Z" fill="#D4D4D2"/><path d="M20 10q4 2 8 0M36 9q4 2 8 0" fill="none" stroke-width="1.4"/></g></svg><div id="farmPets"></div></div>
+  <p class="note" id="relNote" hidden>The farm is getting crowded. Release a pet to make room for new ones.</p>
   <div class="roster" id="roster"></div>
   <div class="stats">
     <div class="stat"><b id="sMins">0</b><small>focus min today</small></div>
@@ -606,7 +633,7 @@ function petSVG(type,G,o,vb){
 /* ---------- state ---------- */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,ambience:S.ambience,worms:S.worms}));}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,ambience:S.ambience,worms:S.worms}));}catch(e){}}
 const saved=load();
 function newPet(type){return {type,name:SPECIES[type].def,sessions:0,variant:randomVariant()};}
 const S={
@@ -620,12 +647,14 @@ const S={
   reasons:saved.reasons||{},
   mins:Object.assign({focus:25,short:5,long:15},saved.mins||{}),
   lost:saved.lost||0,
+  released:saved.released||0,
   override:null,hatchAt:0,sadUntil:0,nextBreak:"short",
   rounds:[1,2,3,4,6,8].includes(saved.rounds)?saved.rounds:4,
   theme:["auto","light","dark"].includes(saved.theme)?saved.theme:"auto",
   worms:saved.worms&&saved.worms.day?saved.worms:{day:"",n:0,total:0}
 };
 function applyMotion(){reduced=S.motion==="reduced";document.documentElement.classList.toggle("rm",reduced);document.querySelectorAll("[data-motion-pick]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.motionPick===S.motion)));}
+const REL_MIN=6;let relAsk=-1;
 const MODES={focus:{opts:[15,25,45,60]},short:{opts:[3,5,10]},long:{opts:[15,20,30]}};
 const speed=()=>S.fast?60:1;
 const durMs=()=>S.mins[S.mode]*60000/speed();
@@ -936,7 +965,7 @@ function renderSide(){
   const tl=S.log.filter(l=>new Date(l.at).toDateString()===today);
   $("#sMins").textContent=tl.reduce((a,l)=>a+l.mins,0);
   $("#sSess").textContent=tl.length;
-  $("#sRaised").textContent=S.farm.length;
+  $("#sRaised").textContent=S.farm.length+(S.released||0);
   const top=Object.entries(S.reasons).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1])[0];
   const wToday=S.worms.day===today?S.worms.n:0;
   const bits=[];
@@ -957,8 +986,20 @@ function renderSide(){
     el.addEventListener("click",()=>{ensureAudio();fp.hopT=fp.t;voice(fp.p.type,4,.7);});
     box.appendChild(el);farmPets.push(fp);
   });
-  $("#roster").innerHTML=S.farm.slice().reverse().slice(0,30).map(p=>`<span>${esc(p.name)} · ${VARIANTS[p.variant||"white"].label} ${SPECIES[p.type].stages[4].toLowerCase()}</span>`).join("");
+  const many=S.farm.length>=REL_MIN;
+  $("#relNote").hidden=!many;
+  $("#roster").innerHTML=S.farm.map((p,i)=>[p,i]).reverse().slice(0,30).map(([p,i])=>{
+    const nm=`${esc(p.name)} · ${VARIANTS[p.variant||"white"].label} ${SPECIES[p.type].stages[4].toLowerCase()}`;
+    if(many&&relAsk===i)return `<span class="ask">Release ${esc(p.name)}? <button type="button" data-rel-yes="${i}">Yes</button><button type="button" data-rel-no>No</button></span>`;
+    return `<span>${nm}${many?` <button type="button" class="rel" data-rel="${i}" aria-label="Release ${esc(p.name)}">Release</button>`:""}</span>`;
+  }).join("");
 }
+$("#roster").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.rel!==undefined){relAsk=+b.dataset.rel;renderSide();}
+  else if(b.dataset.relNo!==undefined){relAsk=-1;renderSide();}
+  else if(b.dataset.relYes!==undefined){const i=+b.dataset.relYes;if(S.farm[i]){S.farm.splice(i,1);S.released=(S.released||0)+1;save();}relAsk=-1;renderSide();updateUI();}
+});
 (function(){
   const farmEl=$("#farm");
   const hint=document.createElement("p");hint.className="farm-hint";hint.textContent="Tap the farm to scatter some feed.";farmEl.after(hint);
@@ -1059,7 +1100,7 @@ $("#clear").addEventListener("click",e=>{
   const b=e.currentTarget;
   if(!b.classList.contains("warn")){b.classList.add("warn");b.textContent="Click again to erase all";clearTimer=setTimeout(()=>{b.classList.remove("warn");b.textContent="Reset everything";},3000);return;}
   clearTimeout(clearTimer);b.classList.remove("warn");b.textContent="Reset everything";
-  S.farm=[];S.log=[];S.reasons={};S.lost=0;S.pet=newPet("chick");S.override=null;nameEl.value=S.pet.name;
+  S.farm=[];S.log=[];S.reasons={};S.lost=0;S.released=0;S.pet=newPet("chick");S.override=null;nameEl.value=S.pet.name;
   save();renderSide();setMode("focus");
 });
 
@@ -1140,7 +1181,7 @@ function runningMsg(G,p){
   if(G<1) return G<.3?"The egg is warm. Keep focusing.":G<.55?"Something's wiggling inside.":G<.8?"A crack! Keep going.":"It's about to hatch!";
   return `${p.name} is growing…`;
 }
-let wl=null,napT=0,rest=0,amb=null,ambBuf=null,ambLoading=false;const NAP_AFTER=10;
+let wl=null,napT=0,rest=0,amb=null,ambBuf=null,ambLoading=false,ambTried=false;const NAP_AFTER=10;
 let lastTimeStr="",last=0,clock=0,lastG=null,lastForm=null,formFade=null;
 let RAF=f=>requestAnimationFrame(f),curLoop=null,loopGen=0;
 function startLoop(win){const g=++loopGen;curLoop=()=>{if(g!==loopGen)return;frame(performance.now());};RAF=f=>win.requestAnimationFrame(f);win.requestAnimationFrame(curLoop);}
@@ -1236,14 +1277,14 @@ nameEl.addEventListener("input",()=>{S.pet.name=nameEl.value.trim()||SPECIES[S.p
 nameEl.addEventListener("blur",()=>{nameEl.value=S.pet.name;updateUI();});
 /* farm ambience: a looping recording that plays while My farm is open */
 async function loadAmb(){
-  if(ambBuf||ambLoading||!ac)return;ambLoading=true;
+  if(ambBuf||ambLoading||ambTried||!ac)return;ambLoading=true;ambTried=true;
   try{const r=await fetch("sounds/ambience-farm.mp3");if(r.ok)ambBuf=await ac.decodeAudioData(await r.arrayBuffer());}catch(e){}
   ambLoading=false;
 }
 function farmOpen(){return $("#farmSheet").classList.contains("on");}
 function ambOn(){
   if(!S.ambience||!ac||amb)return;
-  if(!ambBuf){loadAmb().then(()=>{if(farmOpen())ambOn();});return;}
+  if(!ambBuf){if(!ambTried)loadAmb().then(()=>{if(ambBuf&&farmOpen())ambOn();});return;}
   try{const t=ac.currentTime,src=ac.createBufferSource(),g=ac.createGain();src.buffer=ambBuf;src.loop=true;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.3,t+2.6);src.connect(g);g.connect(ac.destination);src.start(t);amb={src,g};}catch(e){amb=null;}
 }
 function ambOff(){
