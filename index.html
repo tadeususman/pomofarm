@@ -684,9 +684,9 @@ function loadSamples(){
 function playSample(buf,G,mult,type){
   const n=ac.currentTime+.01,gr=clamp(((G||1)-1)/3),src=ac.createBufferSource(),g=ac.createGain();
   src.buffer=buf;
-  const r0=type==="goose"?1.5:type==="chick"?1.05:1.7,r1=type==="chick"?.8:.9,rate=lerp(r0,r1,Math.pow(gr,.8))*(.96+Math.random()*.08);
+  const r0=type==="goose"?1.5:type==="chick"?1:1.7,r1=type==="chick"?.9:.9,rate=lerp(r0,r1,Math.pow(gr,.8))*(.96+Math.random()*.08);
   src.playbackRate.value=rate;
-  const dur=Math.min(buf.duration/rate,lerp(.6,1.4,gr)),vol=lerp(.35,.9,gr)*(mult||1);
+  const dur=Math.min(buf.duration/rate,lerp(.6,1.4,gr)),vol=lerp(type==="chick"?.6:.35,.9,gr)*(mult||1);
   g.gain.setValueAtTime(vol,n);g.gain.setValueAtTime(vol,n+Math.max(0,dur-.15));g.gain.linearRampToValueAtTime(0,n+dur);
   src.connect(g);g.connect(ac.destination);src.start(n);src.stop(n+dur+.05);
 }
