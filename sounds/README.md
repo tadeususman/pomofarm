@@ -12,3 +12,5 @@ Chick peeps cut from "short chick sound" by nikin, the quack from "duck quack" b
 Stage-specific recordings: `<animal>-baby.mp3` and `<animal>-teen.mp3` (plus `-teen2.mp3` ...) are used for that growth stage as they are, without pitch shifting.
 If a stage has no file of its own, the adult recording is used (pitched up for babies). Currently: `duck-baby`, `duck-teen` (4), `goose-teen` (4). Baby geese still use the pitched adult honk.
 Extra credits: baby duck "quack" by baby_duck_stu9, "natural duck" by sahidullah, "goose honking" by jasonlee3071 (all Pixabay).
+
+`ambience-farm.mp3` - looping farm ambience (made seamless with a crossfade) that plays while My farm is open; can be switched off in Settings. Source: "ambience farm 02" by freesound_community (Pixabay).
