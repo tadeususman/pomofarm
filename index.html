@@ -117,7 +117,6 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .farm{cursor:pointer}
 .farm .trough{position:absolute;left:72%;bottom:12%;width:64px;transform:translateX(-50%);z-index:28;pointer-events:none}
 .grain{position:absolute;width:5px;height:3.5px;border-radius:50%;background:#23221F;pointer-events:none;animation:gdrop .35s ease-out both}
-.pf-pixel .grain{border-radius:0;width:4px;height:4px}
 @keyframes gdrop{from{transform:translate(-50%,-34px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
 .farm-hint{margin:8px 2px 0;font-size:12.5px;color:var(--muted);text-align:center}
 .fpet .sv{display:block;width:100%;height:100%}
@@ -171,26 +170,6 @@ button:disabled{cursor:not-allowed;opacity:.4}
 .pf-dark .farm svg [stroke="#FAFAF9"]{stroke:#FAFAF9}
 .pf-dark .farm svg [stroke="#77766F"]{stroke:#77766F}
 
-/* pixel style */
-.pf-pixel{--px:polygon(0 4px,4px 4px,4px 0,calc(100% - 4px) 0,calc(100% - 4px) 4px,100% 4px,100% calc(100% - 4px),calc(100% - 4px) calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,4px calc(100% - 4px),0 calc(100% - 4px))}
-.pf-pixel body{-webkit-font-smoothing:none;font-smooth:never}
-canvas.pxc{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:none;display:none}
-.pf-pixel canvas.pxc{display:block}
-.pf-pixel .stage svg.scene{opacity:0}
-.pf-pixel .fpet .sv svg{opacity:0}
-.fpet .sv{position:relative}
-canvas.pxs{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
-.pf-pixel .farm .barn,.pf-pixel .farm .tree,.pf-pixel .farm .trough{filter:url(#pixS)}
-.pf-pixel .btn,.pf-pixel .tabs,.pf-pixel .tabs button,.pf-pixel .dur,.pf-pixel .species,.pf-pixel .field,.pf-pixel .stat,.pf-pixel .roster span,.pf-pixel .reasons button,.pf-pixel .badge,.pf-pixel .icon{border-radius:0;clip-path:var(--px)}
-.pf-pixel .dialog,.pf-pixel .farm{border-radius:0;border-width:3px;box-shadow:4px 4px 0 var(--ink)}
-.pf-pixel .sheet{border-radius:0;border-width:3px}
-.pf-pixel .grab{border-radius:0}
-.pf-pixel .dots i{border-radius:0}
-.pf-pixel .time{font-weight:500;font-size:76px;letter-spacing:0}
-.pf-pixel .time .d{width:.62em}
-.pf-pixel .farm .posts i,.pf-pixel .farm .rails i{border-radius:0}
-.pf-pixel .confetti{border-radius:0}
-.pf-pixel .spark{border-radius:0}
 @media (prefers-reduced-motion:reduce){
   .spark,.confetti,.float,.zzz span}
   .sheet,.scrim{transition:none}
@@ -199,7 +178,6 @@ canvas.pxs{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><filter id="pixL" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB"><feFlood x="2" y="2" width="1" height="1"/><feComposite width="5" height="5"/><feTile result="g"/><feComposite in="SourceGraphic" in2="g" operator="in"/><feMorphology operator="dilate" radius="2"/><feComponentTransfer><feFuncA type="discrete" tableValues="0 1"/></feComponentTransfer></filter><filter id="pixS" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB"><feFlood x="1" y="1" width="1" height="1"/><feComposite width="3" height="3"/><feTile result="g"/><feComposite in="SourceGraphic" in2="g" operator="in"/><feMorphology operator="dilate" radius="1"/><feComponentTransfer><feFuncA type="discrete" tableValues="0 1"/></feComponentTransfer></filter></defs></svg>
 <div class="app">
   <div class="bar">
     <button type="button" class="icon" id="openFarm" aria-label="My farm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M3 10.5L12 4l9 6.5V20H3z"/><path d="M9.5 20v-5.5h5V20"/></svg><span class="badge" id="farmBadge"></span></button>
@@ -220,7 +198,6 @@ canvas.pxs{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
       <filter id="outline" x="-20%" y="-20%" width="140%" height="140%"><feMorphology in="SourceAlpha" operator="dilate" radius="1.5" result="d"/><feFlood flood-color="#23221F"/><feComposite in2="d" operator="in" result="o"/><feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
       <filter id="outlineFixed" x="-20%" y="-20%" width="140%" height="140%"><feMorphology in="SourceAlpha" operator="dilate" radius="1.5" result="d"/><feFlood class="fixed" flood-color="#23221F"/><feComposite in2="d" operator="in" result="o"/><feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
     </svg>
-    <canvas class="pxc" id="pxStage" width="85" height="30" aria-hidden="true"></canvas>
     <button type="button" class="pet-hit" id="petHit" aria-label="Pet your pet"></button>
     <div class="zzz" aria-hidden="true"><span>z</span><span>z</span><span>Z</span></div>
   </div>
@@ -279,7 +256,6 @@ canvas.pxs{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
   <div class="group"><label class="gl" for="petName">Pet name</label><input class="field" id="petName" maxlength="16" autocomplete="off"></div>
   <div class="group"><label class="gl" for="task">Focusing on (optional)</label><input class="field" id="task" maxlength="60" placeholder="e.g. Review the GL module" autocomplete="off"></div>
   <div class="group"><span class="gl">Theme</span><div class="row theme-row" id="themeRow"><button type="button" class="dur" data-theme-pick="auto">Auto</button><button type="button" class="dur" data-theme-pick="light">Light</button><button type="button" class="dur" data-theme-pick="dark">Dark</button></div></div>
-  <div class="group"><span class="gl">Style</span><div class="row" id="styleRow"><button type="button" class="dur" data-style-pick="smooth">Smooth</button><button type="button" class="dur" data-style-pick="pixel">Pixel</button></div></div>
   <label class="switch" for="fast">Quick preview (1 min = 1 sec)<input type="checkbox" id="fast"></label>
   <button type="button" class="text-btn" id="clear" style="align-self:flex-start;padding-left:0">Reset everything</button>
 </section>
@@ -434,7 +410,7 @@ function petSVG(type,G,o,vb){
 /* ---------- state ---------- */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,rounds:S.rounds,theme:S.theme,worms:S.worms,style:S.style}));}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,rounds:S.rounds,theme:S.theme,worms:S.worms}));}catch(e){}}
 const saved=load();
 function newPet(type){return {type,name:SPECIES[type].def,sessions:0,variant:randomVariant()};}
 const S={
@@ -448,7 +424,6 @@ const S={
   override:null,hatchAt:0,sadUntil:0,nextBreak:"short",
   rounds:[1,2,3,4,6,8].includes(saved.rounds)?saved.rounds:4,
   theme:["auto","light","dark"].includes(saved.theme)?saved.theme:"auto",
-  style:saved.style==="pixel"?"pixel":"smooth",
   worms:saved.worms&&saved.worms.day?saved.worms:{day:"",n:0,total:0}
 };
 const MODES={focus:{opts:[15,25,45,60]},short:{opts:[3,5,10]},long:{opts:[15,20,30]}};
@@ -600,7 +575,7 @@ function complete(){
 
 /* ---------- overlays ---------- */
 let ovMainFn=null,ovSecFn=null;
-function openOverlay(){overlay.classList.add("on");pixelateStatic($("#ovArt"));setTimeout(()=>$("#ovMain").focus(),50);}
+function openOverlay(){overlay.classList.add("on");setTimeout(()=>$("#ovMain").focus(),50);}
 function hideOverlay(){overlay.classList.remove("on");overlay.querySelectorAll(".confetti").forEach(e=>e.remove());$("#reasons").hidden=true;}
 $("#ovMain").addEventListener("click",()=>ovMainFn&&ovMainFn());
 $("#ovSec").addEventListener("click",()=>ovSecFn&&ovSecFn());
@@ -691,9 +666,9 @@ function renderSide(){
   S.farm.slice(-16).forEach((p,i)=>{
     const el=document.createElement("button");el.type="button";el.className="fpet";el.title=`${p.name}, ${VARIANTS[p.variant||"white"].label.toLowerCase()} ${SPECIES[p.type].stages[4].toLowerCase()}`;
     el.setAttribute("aria-label",el.title);
-    el.innerHTML=`<span class="sv"><svg viewBox="44 70 112 108" aria-hidden="true">${drawPet(p.type,4,{fixedInk:true,variant:p.variant})}</svg></span><canvas class="pxc" width="28" height="29" aria-hidden="true"></canvas>`;
+    el.innerHTML=`<span class="sv"><svg viewBox="44 70 112 108" aria-hidden="true">${drawPet(p.type,4,{fixedInk:true,variant:p.variant})}</svg></span>`;
     const d0=Math.random()<.5?-1:1;
-    const fp={svgBox:el.querySelector(".sv"),cv:el.querySelector("canvas"),job:{busy:false},pxLast:-1,el,p,x:10+Math.random()*80,dir:d0,face:d0,vel:0,top:5+Math.random()*4,state:"idle",timer:.5+Math.random()*2.5,t:Math.random()*10,wt:Math.random()*6,nextBlink:Math.random()*3,blinkT:-1,peckT:-1,hopT:-1,lane:6+(i%4)*9};
+    const fp={svgBox:el.querySelector(".sv"),el,p,x:10+Math.random()*80,dir:d0,face:d0,vel:0,top:5+Math.random()*4,state:"idle",timer:.5+Math.random()*2.5,t:Math.random()*10,wt:Math.random()*6,nextBlink:Math.random()*3,blinkT:-1,peckT:-1,hopT:-1,lane:6+(i%4)*9};
     el.style.bottom=fp.lane+"%";el.style.zIndex=String(40-fp.lane);
     el.addEventListener("click",()=>{ensureAudio();fp.hopT=fp.t;voice(fp.p.type,4,.7);});
     box.appendChild(el);farmPets.push(fp);
@@ -789,7 +764,6 @@ function updateFarm(dt){
     fp.el.style.left=fp.x.toFixed(2)+"%";
     const inner=`<g transform="translate(100 0) scale(${face.toFixed(3)} 1) translate(-100 0)">${drawPet(fp.p.type,4,{fixedInk:true,variant:fp.p.variant,t:moving?fp.wt:fp.t,walk:moving,sleep:night&&hop===0&&!moving,blink,peck,hop,flap,happy:hop>4})}</g>`;
     fp.svgBox.innerHTML=`<svg viewBox="44 62 112 116" aria-hidden="true">${inner}</svg>`;
-    if(isPixel()&&fp.t-fp.pxLast>.1){fp.pxLast=fp.t;rasterize(inner,"44 62 112 116",fp.cv,fp.job);}
   });
 }
 let clearTimer=null;
@@ -927,7 +901,6 @@ function frame(now){
   const mx=mover.x-100;
   const dir=G<1||(S.hatchAt&&hatchK<1)?1:mover.dir;
   petG.innerHTML=(breakMode&&G>=1?seedsWorld():"")+`<g transform="translate(${f(mx+100)} 0) scale(${dir} 1) translate(-100 0)">${svg}</g>`+wormSvg;
-  if(isPixel()&&now-stageJob.last>70){stageJob.last=now;rasterize(petG.innerHTML,"30 70 340 120",$("#pxStage"),stageJob);}
   const pct=((mover.x-30)/340*100).toFixed(2)+"%";
   $("#petHit").style.left=pct;$(".zzz").style.left="calc("+pct+" + 6%)";petPct=(mover.x-30)/340*100;
     chip.textContent=p.name;
@@ -968,82 +941,6 @@ document.addEventListener("keydown",e=>{
   e.preventDefault();btnMain.click();
 });
 
-/* pixel rasterizer: draw the SVG small, then snap every pixel to the two-color palette */
-const isPixel=()=>S.style==="pixel";
-const isDark=()=>document.documentElement.classList.contains("pf-dark");
-const sceneEl=document.querySelector(".scene");
-const DEFS_L=[...sceneEl.querySelectorAll("clipPath,filter")].map(e=>e.outerHTML).join("");
-const DEFS_D=DEFS_L.replace('<filter id="outline"','<filter id="outline"').replace(/(<filter id="outline"[^]*?flood-color=")#23221F/,"$1#ECEAE4");
-const PAL_L=["#23221F","#FAFAF9","#D4D4D2","#EAEAE8","#D9D9D7","#BDBDBB","#4A4944"].map(hex);
-const PAL_D=PAL_L.concat([hex("#ECEAE4")]);
-function blockReduce(big,w,h,SS,dark,halo){
-  const bw=w*SS,bh=h*SS,src=big.getImageData(0,0,bw,bh).data,pal=dark?PAL_D:PAL_L;
-  const out=new ImageData(w,h),d=out.data,n=SS*SS;
-  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-    let op=0,ink=0,r=0,g=0,b=0,m=0;
-    for(let j=0;j<SS;j++)for(let i=0;i<SS;i++){
-      const o=((y*SS+j)*bw+x*SS+i)*4,a=src[o+3];
-      if(a<120)continue;
-      op++;
-      const pr=src[o]*255/a,pg=src[o+1]*255/a,pb=src[o+2]*255/a,lum=(pr+pg+pb)/3;
-      const inkLike=lum<95;
-      if(inkLike)ink++;else{r+=pr;g+=pg;b+=pb;m++;}
-    }
-    const o=(y*w+x)*4;
-    if(op<n*.38)continue;
-    let c;
-    if(ink>=n*.2||m===0)c=pal[0];
-    else{
-      r/=m;g/=m;b/=m;let best=1,bd=1e9;
-      for(let k=1;k<pal.length;k++){const q=pal[k],dd=(q[0]-r)**2+(q[1]-g)**2+(q[2]-b)**2;if(dd<bd){bd=dd;best=k;}}
-      c=pal[best];
-    }
-    d[o]=c[0];d[o+1]=c[1];d[o+2]=c[2];d[o+3]=255;
-  }
-  if(halo){
-    const hl=hex("#ECEAE4"),mark=[];
-    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-      if(d[(y*w+x)*4+3])continue;
-      const nb=[[x-1,y],[x+1,y],[x,y-1],[x,y+1]].some(([a,b])=>a>=0&&b>=0&&a<w&&b<h&&d[(b*w+a)*4+3]);
-      if(nb)mark.push((y*w+x)*4);
-    }
-    mark.forEach(o=>{d[o]=hl[0];d[o+1]=hl[1];d[o+2]=hl[2];d[o+3]=255;});
-  }
-  return out;
-}
-function rasterize(content,vb,canvas,job){
-  if(job&&job.busy) return;
-  if(job) job.busy=true;
-  const dark=isDark(),SS=4;
-  let body=content;
-  const w=canvas.width,h=canvas.height;
-  const src=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${w*SS}" height="${h*SS}"><defs>${DEFS_L}</defs>${body}</svg>`;
-  const img=new Image();
-  img.onload=()=>{
-    try{
-      const big=document.createElement("canvas");big.width=w*SS;big.height=h*SS;
-      const bc=big.getContext("2d",{willReadFrequently:true});bc.drawImage(img,0,0,w*SS,h*SS);
-      canvas.getContext("2d").putImageData(blockReduce(bc,w,h,SS,dark,dark&&!canvas.closest(".farm")),0,0);
-    }catch(e){}
-    if(job)job.busy=false;
-  };
-  img.onerror=()=>{if(job)job.busy=false;};
-  img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(src);
-}
-function pixelateStatic(root){
-  if(!isPixel()) return;
-  root.querySelectorAll("svg").forEach(svg=>{
-    const vb=svg.getAttribute("viewBox");if(!vb)return;
-    const [, , vw,vh]=vb.split(/[ ,]+/).map(Number);
-    const r=svg.getBoundingClientRect();const cw=r.width||40,ch=r.height||40;
-    const cols=Math.max(6,Math.round(vw/4));
-    const c=document.createElement("canvas");c.className="pxs";c.width=cols;c.height=Math.max(6,Math.round(cols*vh/vw));
-    c.style.width=cw+"px";c.style.height=ch+"px";c.setAttribute("aria-hidden","true");
-    svg.replaceWith(c);
-    rasterize(svg.innerHTML,vb,c);
-  });
-}
-const stageJob={busy:false,last:0};
 /* theme */
 const mq=window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)"):null;
 function syncPip(){if(pipWin&&!pipWin.closed)pipWin.document.documentElement.className=document.documentElement.className;}
@@ -1053,13 +950,10 @@ function applyTheme(){
   else if(S.theme==="light")dark=false;
   else{const h=document.documentElement.getAttribute("data-theme");dark=h?h==="dark":!!(mq&&mq.matches);}
   document.documentElement.classList.toggle("pf-dark",dark);
-  document.documentElement.classList.toggle("pf-pixel",S.style==="pixel");
-  if(typeof artReady!=="undefined"&&artReady){buildSpecies();pixelateStatic($("#speciesRow"));}
+  if(typeof artReady!=="undefined"&&artReady)buildSpecies();
   syncPip();
-  document.querySelectorAll("[data-style-pick]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.stylePick===S.style)));
   document.querySelectorAll("[data-theme-pick]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.themePick===S.theme)));
 }
-document.querySelectorAll("[data-style-pick]").forEach(b=>b.addEventListener("click",()=>{S.style=b.dataset.stylePick;save();applyTheme();}));
 document.querySelectorAll("[data-theme-pick]").forEach(b=>b.addEventListener("click",()=>{S.theme=b.dataset.themePick;save();applyTheme();}));
 if(mq&&mq.addEventListener)mq.addEventListener("change",applyTheme);
 try{new MutationObserver(applyTheme).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});}catch(e){}
@@ -1095,7 +989,7 @@ applyTheme();
 window.__FP={voice,ensureAudio,drawPet,drawEgg,drawHatch,SPECIES,VARIANTS};
 nameEl.value=S.pet.name;
 buildSpecies();buildDurs();renderSide();reset();
-var artReady=true;pixelateStatic($("#speciesRow"));
+var artReady=true;
 startLoop(window);
 })();
 </script>
