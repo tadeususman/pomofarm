@@ -199,22 +199,25 @@ html.pf-dark #themeBtn .moon{display:none}html.pf-dark #themeBtn .sun{display:bl
 .sky .m>svg,.sky .m>span{position:absolute;left:0;top:0}
 .sky .cl{height:auto;overflow:visible}
 .sky .cl path{fill:#FAFAF9;stroke:#23221F;stroke-width:1.8;stroke-linejoin:round}
-.sky .bd{width:15px;height:8px;overflow:visible;animation:flap .6s ease-in-out infinite;transform-origin:50% 100%}
-.sky .bd path{fill:none;stroke:#23221F;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.sky .m>span{width:15px;height:8px;display:block}
+.sky .bd{width:24px;height:auto;overflow:visible;fill:#23221F;stroke:none;animation:bob 1.3s ease-in-out infinite}
+.sky .bd .w{transform-origin:14px 9px;animation:flapw .55s ease-in-out infinite;animation-delay:var(--d,0s)}
+.sky .bd .w2{opacity:.5;animation-delay:calc(var(--d,0s) - .07s)}
+.sky .m>span{width:24px;height:18px;display:block}
 .sky .c1{top:9%;animation:drift 95s linear infinite;animation-delay:-30s}
 .sky .c2{top:22%;animation:drift 140s linear infinite;animation-delay:-90s}
 .sky .c3{top:5%;animation:drift 120s linear infinite;animation-delay:-8s}
 .sky .b1{top:14%;animation:fly 46s linear infinite;animation-delay:-6s}
 .sky .b2{top:27%;animation:flyback 71s linear infinite;animation-delay:-40s}
-.sky .b2 .bd{animation-duration:.5s}
+.sky .b2 .bd{transform:scaleX(-1);animation:none}
+.sky .b2 .bd .w{animation-duration:.5s}
 @keyframes drift{from{transform:translateX(-24%)}to{transform:translateX(104%)}}
 @keyframes fly{0%{transform:translate(-12%,6px)}22%{transform:translate(106%,-14px)}100%{transform:translate(106%,-14px)}}
 @keyframes flyback{0%{transform:translate(106%,0) scaleX(1)}18%{transform:translate(-12%,-10px)}100%{transform:translate(-12%,-10px)}}
-@keyframes flap{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.35)}}
+@keyframes flapw{0%,100%{transform:rotate(14deg)}50%{transform:rotate(-78deg)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.6px)}}
 html.rm .sky .m{animation:none;transform:translateX(var(--x,0))}
 html.rm .sky .b1,html.rm .sky .b2{display:none}
-html.rm .sky .bd{animation:none}
+html.rm .sky .bd,html.rm .sky .bd .w{animation:none}
 .farm .trough{position:absolute;left:72%;bottom:12%;width:64px;transform:translateX(-50%);z-index:28;pointer-events:none}
 .grain{position:absolute;width:5px;height:3.5px;border-radius:50%;background:#23221F;pointer-events:none;animation:gdrop .35s ease-out both}
 @keyframes gdrop{from{transform:translate(-50%,-34px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
@@ -330,7 +333,7 @@ html.rm .dialog{animation:none}
 <section class="sheet" id="farmSheet" aria-labelledby="farmTitle" aria-hidden="true">
   <div class="grab"></div>
   <div class="sheet-head"><h2 id="farmTitle">My farm</h2><button type="button" class="text-btn" data-close>Done</button></div>
-  <div class="farm" id="farm"><div class="sky" aria-hidden="true"><div class="m c1" style="--x:12%"><svg class="cl" style="width:64px" viewBox="0 0 80 36" aria-hidden="true"><path d="M15 31Q3 31 5 21Q7 13 17 15Q19 5 31 5Q43 3 47 13Q53 7 63 13Q73 15 71 25Q77 31 67 31Z"/></svg></div><div class="m c2" style="--x:58%"><svg class="cl" style="width:46px" viewBox="0 0 80 36" aria-hidden="true"><path d="M15 31Q3 31 5 21Q7 13 17 15Q19 5 31 5Q43 3 47 13Q53 7 63 13Q73 15 71 25Q77 31 67 31Z"/></svg></div><div class="m c3" style="--x:80%"><svg class="cl" style="width:34px" viewBox="0 0 80 36" aria-hidden="true"><path d="M15 31Q3 31 5 21Q7 13 17 15Q19 5 31 5Q43 3 47 13Q53 7 63 13Q73 15 71 25Q77 31 67 31Z"/></svg></div><div class="m b1"><svg class="bd" viewBox="0 0 24 12" aria-hidden="true"><path d="M2 9Q7 0 12 8Q17 0 22 9"/></svg><span style="left:-18px;top:9px"><svg class="bd" viewBox="0 0 24 12" aria-hidden="true"><path d="M2 9Q7 0 12 8Q17 0 22 9"/></svg></span><span style="left:-34px;top:-3px"><svg class="bd" viewBox="0 0 24 12" aria-hidden="true"><path d="M2 9Q7 0 12 8Q17 0 22 9"/></svg></span></div><div class="m b2"><svg class="bd" viewBox="0 0 24 12" aria-hidden="true"><path d="M2 9Q7 0 12 8Q17 0 22 9"/></svg></div></div><div class="rails"><i></i><i></i></div><div class="posts"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><svg class="barn" viewBox="0 0 140 98" aria-hidden="true"><g stroke="#23221F" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+  <div class="farm" id="farm"><div class="sky" aria-hidden="true"><div class="m c1" style="--x:12%"><svg class="cl" style="width:64px" viewBox="0 0 80 36" aria-hidden="true"><path d="M15 31Q3 31 5 21Q7 13 17 15Q19 5 31 5Q43 3 47 13Q53 7 63 13Q73 15 71 25Q77 31 67 31Z"/></svg></div><div class="m c2" style="--x:58%"><svg class="cl" style="width:46px" viewBox="0 0 80 36" aria-hidden="true"><path d="M15 31Q3 31 5 21Q7 13 17 15Q19 5 31 5Q43 3 47 13Q53 7 63 13Q73 15 71 25Q77 31 67 31Z"/></svg></div><div class="m c3" style="--x:80%"><svg class="cl" style="width:34px" viewBox="0 0 80 36" aria-hidden="true"><path d="M15 31Q3 31 5 21Q7 13 17 15Q19 5 31 5Q43 3 47 13Q53 7 63 13Q73 15 71 25Q77 31 67 31Z"/></svg></div><div class="m b1"><svg class="bd" viewBox="0 -4 30 22" aria-hidden="true"><path class="w w2" d="M14 9Q8 5 8 -2Q15 3 17 9Z"/><path d="M9.5 10.3L3.5 12.6L10 12.4Z"/><ellipse cx="15" cy="10.6" rx="6.2" ry="2.9"/><circle cx="21.2" cy="9.1" r="2.2"/><path d="M23 8.5L27 9.4L23 10.3Z"/><path class="w w1" d="M14 9Q8 5 8 -2Q15 3 17 9Z"/></svg><span style="left:-30px;top:10px;--d:-.2s"><svg class="bd" viewBox="0 -4 30 22" aria-hidden="true"><path class="w w2" d="M14 9Q8 5 8 -2Q15 3 17 9Z"/><path d="M9.5 10.3L3.5 12.6L10 12.4Z"/><ellipse cx="15" cy="10.6" rx="6.2" ry="2.9"/><circle cx="21.2" cy="9.1" r="2.2"/><path d="M23 8.5L27 9.4L23 10.3Z"/><path class="w w1" d="M14 9Q8 5 8 -2Q15 3 17 9Z"/></svg></span><span style="left:-58px;top:-5px;--d:-.35s"><svg class="bd" viewBox="0 -4 30 22" aria-hidden="true"><path class="w w2" d="M14 9Q8 5 8 -2Q15 3 17 9Z"/><path d="M9.5 10.3L3.5 12.6L10 12.4Z"/><ellipse cx="15" cy="10.6" rx="6.2" ry="2.9"/><circle cx="21.2" cy="9.1" r="2.2"/><path d="M23 8.5L27 9.4L23 10.3Z"/><path class="w w1" d="M14 9Q8 5 8 -2Q15 3 17 9Z"/></svg></span></div><div class="m b2"><svg class="bd" viewBox="0 -4 30 22" aria-hidden="true"><path class="w w2" d="M14 9Q8 5 8 -2Q15 3 17 9Z"/><path d="M9.5 10.3L3.5 12.6L10 12.4Z"/><ellipse cx="15" cy="10.6" rx="6.2" ry="2.9"/><circle cx="21.2" cy="9.1" r="2.2"/><path d="M23 8.5L27 9.4L23 10.3Z"/><path class="w w1" d="M14 9Q8 5 8 -2Q15 3 17 9Z"/></svg></div></div><div class="rails"><i></i><i></i></div><div class="posts"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><svg class="barn" viewBox="0 0 140 98" aria-hidden="true"><g stroke="#23221F" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
 <path d="M108 96V40Q120 24 132 40V96Z" fill="#FAFAF9"/><path d="M108 56H132M108 72H132M108 88H132" fill="none" stroke-width="1.4" opacity=".55"/>
 <path d="M10 46L55 15L100 46V96H10Z" fill="#FAFAF9"/>
 <path d="M4 48L55 9L106 48" fill="none" stroke-width="6"/>
