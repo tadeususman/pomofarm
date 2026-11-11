@@ -302,108 +302,125 @@ const SPECIES={
   duck:{name:"Duck",def:"Puddle",stages:["Egg","Duckling","Young","Teen","Duck"],baby:PAPER,babyS:TINT,adult:PAPER,adultS:TINT,beak:INK,leg:LINE,egg:PAPER,eggSpot:TINT,confetti:["var(--ink)","var(--muted)"]}
 };
 
-/* ---------- drawing ---------- */
-function eggPath(top,bot){return `M100 ${top}C118 ${top} 131 ${top+34} 131 ${top+50}C131 ${bot-8} 117 ${bot} 100 ${bot}C83 ${bot} 69 ${bot-8} 69 ${top+50}C69 ${top+34} 82 ${top} 100 ${top}Z`;}
-const EGG_TOP=GROUND-84,EGG_BOT=GROUND-8;
-function eggBody(sp){
-  let o=`<path d="${eggPath(EGG_TOP,EGG_BOT)}" fill="${sp.egg}" stroke="${LINE}" stroke-width="2.4"/><path d="M84 ${EGG_TOP+20}q-6 10 -7 22" stroke="${INK}" stroke-width="1.6" stroke-linecap="round" fill="none" opacity=".35"/>`;
-  [[110,104,2.4],[88,140,1.8],[118,146,2.2],[96,116,1.5],[112,126,1.4]].forEach(([x,y,r])=>o+=`<circle cx="${x}" cy="${y}" r="${r}" fill="${sp.eggSpot}"/>`);
-  return o;
+/* ---------- drawing (side-view characters, local 100x100 box, ground y=98) ---------- */
+const PX=50,PY=74;
+const WORLD=s=>`<g transform="translate(${PX} ${PY})">${s}</g>`;
+const formOf=G=>G<2?0:G<3.2?1:2;
+const sizeOf=G=>{const k=formOf(G);return k===0?lerp(.78,1,seg(G,1,2)):k===1?lerp(.86,1,seg(G,2,3.2)):lerp(.9,1,seg(G,3.2,4));};
+const PECK=[{th:42,px:57,dip:0,tx:75,ty:76},{th:50,px:51,dip:3,tx:90,ty:45},{th:46,px:59,dip:7,tx:87,ty:29}];
+function peckTip(G){
+  const k=formOf(G),P=PECK[k],s=sizeOf(G),r=P.th*Math.PI/180,dx=P.tx-P.px,dy=P.ty-98;
+  const x=P.px+dx*Math.cos(r)-dy*Math.sin(r),y=98+dx*Math.sin(r)+dy*Math.cos(r)+P.dip;
+  return {dx:(x-PX)*s,lift:Math.max(0,(98-y)*s)};
 }
-function nestBack(){return `<ellipse cx="100" cy="${GROUND-7}" rx="47" ry="12" fill="${TINT}" stroke="${LINE}" stroke-width="2.4"/>`;}
-function nestFront(){
-  let o=`<path d="M53 ${GROUND-9}Q100 ${GROUND+16} 147 ${GROUND-9}Q141 ${GROUND+7} 100 ${GROUND+9}Q59 ${GROUND+7} 53 ${GROUND-9}Z" fill="${PAPER}" stroke="${LINE}" stroke-width="2.4" stroke-linejoin="round"/>`;
-  o+=`<path d="M60 ${GROUND-4}q20 8 40 7M78 ${GROUND+2}q22 2 44 -5M104 ${GROUND-1}q20 -1 38 -7M66 ${GROUND-8}q10 6 22 6" stroke="${INK}" stroke-width="1.3" fill="none" stroke-linecap="round" opacity=".55"/>`;
-  return o;
+function eggShape(){return "M50 30C66 30 76 52 74 68C72 84 62 92 50 92C38 92 28 84 26 68C24 52 34 30 50 30Z";}
+function eggFill(type){return type==="duck"?TINT2:PAPER;}
+function nestBowl(){
+  return `<path d="M20 88Q50 110 80 88Q50 96 20 88Z" fill="${TINT}" stroke="${LINE}" stroke-width="3" stroke-linejoin="round"/><path d="M30 94l-4 -4M44 98l-1 -6M58 98l2 -6M70 94l4 -4" stroke="${LINE}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
 }
 function drawEgg(type,p,o){
-  const sp=SPECIES[type],t=o.t||0;
+  const t=o.t||0;
   const period=Math.max(1.2,3.4-2*p),ph=t%period,env=ph<.7?Math.sin(ph/.7*Math.PI):0;
   const amp=(o.running?(3+9*p):1.2)*env+(o.tapWob||0);
   const rot=Math.sin(t*22)*amp;
-  const y=128;
-  const cracks=[[`M74 ${y}l6 -5 5 6 6 -6 5 5`,seg(p,.3,.55)],[`M96 ${y}l5 -5 6 6 6 -5 6 5 6 -1`,seg(p,.5,.78)],[`M89 ${y+1}l-2 9 4 5M112 ${y}l3 -10 -4 -6`,seg(p,.75,.97)]];
+  const cr=[["M31 60l7 6l6 -8l7 8l7 -7l8 7l6 -5",seg(p,.3,.6)],["M46 66l-2 8l4 5",seg(p,.55,.82)],["M60 62l3 -9l-4 -6",seg(p,.78,.98)]];
   let c="";
-  cracks.forEach(([d,k])=>{if(k>0)c+=`<path d="${d}" pathLength="1" stroke-dasharray="1" stroke-dashoffset="${(1-k).toFixed(3)}" stroke="${INK}" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;});
-  return `<ellipse cx="100" cy="${GROUND+3}" rx="44" ry="5" fill="${LINE}" opacity=".1"/>`+nestBack()+`<g transform="rotate(${f(rot)} 100 ${EGG_BOT})">${eggBody(sp)}${c}</g>`+nestFront();
+  cr.forEach(([d,k])=>{if(k>0)c+=`<path d="${d}" pathLength="1" stroke-dasharray="1" stroke-dashoffset="${(1-k).toFixed(3)}" stroke="${LINE}" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;});
+  const body=`<g transform="rotate(${f(rot)} 50 92)"><path d="${eggShape()}" fill="${eggFill(type)}" stroke="${LINE}" stroke-width="3.2" stroke-linejoin="round"/><path d="M36 50q3 -9 12 -12" fill="none" stroke="${type==="duck"?PAPER:TINT}" stroke-width="3" stroke-linecap="round"/>${c}</g>`;
+  return `<ellipse cx="100" cy="${GROUND+3}" rx="40" ry="5" fill="${LINE}" opacity=".1"/>`+WORLD(body+nestBowl());
 }
-
+function petParts(type,form,o,G){
+  const duck=type==="duck",V=VARIANTS[o.variant]||VARIANTS.white;
+  const darkFace=!!(V.dark||V.head),faceInk=darkFace?PAPER:INK,col=V.body;
+  const tailFill=(V.head||V.dark)?V.tail:col,wingFill=V.dark?"#4A4944":(V.wing||col);
+  const combFill=V.dark?"#4A4944":TINT,beakFill=darkFace?TINT:INK;
+  const t=o.t||0,ph=t*9,walk=!!o.walk;
+  const bobAmp=form===0?1.3:form===1?1.4:1.6;
+  const b=(walk?Math.abs(Math.sin(ph))*bobAmp:Math.sin(t*2.2)*(o.sleep?.9:.4)+.4);
+  const sw='stroke-linecap="round" stroke-linejoin="round"';
+  const S=`stroke="${LINE}"`;
+  const bl=o.blink||0;
+  // legs
+  const xs=form===0?[43,57]:form===1?[37,51]:[47,59];
+  const k=form===0?1:form===1?.8:1.15;
+  const top=form===0?(72-b+17):form===1?(84-b+(duck?2:0)):(80-b+(duck?8:0));
+  let legs="";
+  [[xs[0],0],[xs[1],Math.PI]].forEach(([x0,off])=>{
+    const q=ph+off,lift=walk?Math.max(0,Math.sin(q))*5*k:0,x=x0-(walk?Math.cos(q)*5*k:0),gy=98-lift;
+    legs+=`<path d="M${x0} ${f(top)}L${f(x)} ${f(gy)}" ${S} stroke-width="3" fill="none" ${sw}/>`;
+    if(duck)legs+=`<ellipse cx="${f(x+3)}" cy="${f(gy-.5)}" rx="${form===0?6:7}" ry="2.2" fill="${TINT}" ${S} stroke-width="2.2"/>`;
+    else legs+=`<path d="M${f(x-4)} ${f(gy)}L${f(x+6)} ${f(gy)}" ${S} stroke-width="2.6" fill="none" ${sw}/>`;
+  });
+  const fan=(bx,by,angs,len,rx,ry)=>{let s="";const wob=Math.sin(ph*.5)*(walk?3:.8);angs.forEach((a,i)=>{const aa=a+wob*(i%2?1:-1),r=aa*Math.PI/180,cx=bx+Math.cos(r)*len,cy=by+Math.sin(r)*len;s+=`<ellipse cx="${f(cx)}" cy="${f(cy)}" rx="${rx}" ry="${ry}" transform="rotate(${f(aa)} ${f(cx)} ${f(cy)})" fill="${tailFill}" ${S} stroke-width="3"/>`;});return s;};
+  const wingPath=(x,y,s)=>`M${x+10*s} ${y}C${x+14*s} ${y+5*s} ${x+8*s} ${y+12*s} ${x} ${y+13*s}q${-2.5*s} ${3*s} ${-6*s} ${.8*s}q${-2.5*s} ${3*s} ${-6*s} 0C${x-12*s} ${y+5*s} ${x-2*s} ${y} ${x+10*s} ${y}Z`;
+  const fl=(o.flap||0)*-28;
+  const wing=(x,y,s,sw2)=>`<g transform="rotate(${f(fl)} ${f(x+8*s)} ${f(y)})"><path d="${wingPath(x,y,s)}" fill="${wingFill}" ${S} stroke-width="${sw2}" ${sw}/></g>`;
+  const eye=(ex,ey,r)=>{
+    if(o.sleep||o.happy)return `<path d="M${f(ex-r)} ${f(ey)}q${f(r)} ${o.happy?f(-r*1.4):f(r*1.2)} ${f(2*r)} 0" fill="none" ${S.replace(LINE,faceInk)} stroke-width="2" ${sw}/>`;
+    let s="";
+    if(darkFace&&bl<.5)s+=`<circle cx="${f(ex)}" cy="${f(ey)}" r="${f(r*1.75)}" fill="${PAPER}"/>`;
+    s+=`<ellipse cx="${f(ex)}" cy="${f(ey)}" rx="${r}" ry="${f(Math.max(.3,r*(1-bl*.92)))}" fill="${INK}"/>`;
+    if(bl<.4&&!darkFace)s+=`<circle cx="${f(ex+1.1)}" cy="${f(ey-1.1)}" r="1" fill="${PAPER}"/>`;
+    if(o.sad>0){s+=`<path d="M${f(ex-r*1.5)} ${f(ey-r*2.1)}L${f(ex+r*1.2)} ${f(ey-r*3.1)}" stroke="${faceInk}" stroke-width="1.7" stroke-linecap="round" opacity="${o.sad.toFixed(2)}"/><path d="M${f(ex+1)} ${f(ey+r*1.4)}q${f(-r*.9)} ${f(r*1.8)} 0 ${f(r*2.4)}q${f(r*.9)} ${f(-r*.6)} 0 ${f(-r*2.4)}z" fill="${PAPER}" stroke="${INK}" stroke-width="1.1" opacity="${o.sad.toFixed(2)}"/>`;}
+    return s;
+  };
+  const cheek=(x,y)=>`<ellipse cx="${f(x)}" cy="${f(y)}" rx="3.6" ry="2.3" fill="${V.dark?"#4A4944":TINT}"/>`;
+  let body="";
+  if(form===0){
+    const cy=72-b,cap=duck?TINT2:PAPER;
+    body+=fan(32,cy,duck?[-150]:[-160,-130],5,5.5,3);
+    body+=`<circle cx="50" cy="${f(cy)}" r="19" fill="${col}" ${S} stroke-width="3.2"/>`;
+    if(V.head)body+=`<path d="M31 ${f(cy-2)}A19 19 0 0 1 69 ${f(cy-2)}Z" fill="${V.head}"/>`;
+    body+=wing(48,cy+1,.8,2.2);
+    body+=cheek(61,cy+5)+eye(59,cy-1,3.2);
+    body+=duck?`<ellipse cx="69" cy="${f(cy+4)}" rx="7" ry="3.6" fill="${TINT}" ${S} stroke-width="2.2"/>`:`<path d="M65 ${f(cy)}L74 ${f(cy+4)}L65 ${f(cy+8)}Z" fill="${beakFill}" stroke="${beakFill}" stroke-width="1.4" ${sw}/>`;
+    if(!o.noCap)body+=`<path d="M33 ${f(cy-6)}L39 ${f(cy-14)}L45 ${f(cy-8)}L51 ${f(cy-16)}L57 ${f(cy-8)}L63 ${f(cy-14)}L67 ${f(cy-6)}C66 ${f(cy-30)} 34 ${f(cy-30)} 33 ${f(cy-6)}Z" fill="${cap}" ${S} stroke-width="3.2" ${sw}/>`;
+  }else if(form===1){
+    const bb=b;
+    body+=duck?fan(24,64-bb,[-150],7,7,4):fan(24,64-bb,[-160,-130],7,7,4);
+    body+=duck?`<path d="M64 ${f(31-bb)}q-3 -7 3 -9" ${S} fill="none" stroke-width="2.6" ${sw}/>`:`<circle cx="61" cy="${f(31-bb)}" r="4" fill="${combFill}" ${S} stroke-width="2.3"/><circle cx="68" cy="${f(29-bb)}" r="4" fill="${combFill}" ${S} stroke-width="2.3"/>`;
+    body+=`<ellipse cx="44" cy="${f(68-bb)}" rx="${duck?28:26}" ry="22" fill="${col}" ${S} stroke-width="3.2"/>`;
+    body+=`<circle cx="66" cy="${f(46-bb)}" r="15" fill="${V.head||col}" ${S} stroke-width="3.2"/><circle cx="57" cy="${f(56-bb)}" r="10" fill="${col}"/>`;
+    body+=`<g transform="translate(21 ${f(29-bb)}) scale(.6)"><path d="${wingPath(48,52,1)}" fill="${wingFill}" ${S} stroke-width="3.4" ${sw}/></g>`;
+    body+=cheek(73,52-bb)+eye(70,44-bb,2.9);
+    body+=duck?`<ellipse cx="86" cy="${f(47-bb)}" rx="8.5" ry="4.2" fill="${TINT}" ${S} stroke-width="2.3"/>`:`<path d="M80 ${f(41-bb)}L90 ${f(45-bb)}L80 ${f(49-bb)}Z" fill="${beakFill}" stroke="${beakFill}" stroke-width="1.5" ${sw}/>`;
+  }else{
+    const dy=(duck?4:0)-b;
+    body+=`<g transform="translate(0 ${f(dy)})">`;
+    body+=duck?fan(26,52,[-160,-130],8,8,4.4):fan(24,46,[-165,-138,-110],10,11,5.2);
+    body+=duck?`<path d="M60 12q-3 -7 4 -9" ${S} fill="none" stroke-width="2.6" ${sw}/>`:[0,1,2].map(i=>`<circle cx="${56+i*7}" cy="${i===1?9:11}" r="5" fill="${combFill}" ${S} stroke-width="2.4"/>`).join("");
+    const BP="M58 14C70 12 78 22 76 32C75 38 72 40 74 48C82 60 80 74 66 82C56 88 40 88 30 82C18 74 16 54 24 42C28 36 38 36 44 32C48 22 50 14 58 14Z";
+    body+=`<path d="${BP}" fill="${col}" ${S} stroke-width="3.2" ${sw}/>`;
+    if(V.head)body+=`<clipPath id="pcA"><path d="${BP}"/></clipPath><g clip-path="url(#pcA)"><path d="M44 0H90V42Q70 48 44 40Z" fill="${V.head}"/></g>`;
+    body+=wing(48,52,1,2.6).replace(/stroke-width="2.6"/,'stroke-width="2.6"');
+    body+=cheek(70,34)+eye(66,26,3);
+    body+=duck?`<ellipse cx="82" cy="31" rx="9" ry="4.4" fill="${TINT}" ${S} stroke-width="2.4"/>`:`<path d="M75 24L87 29L75 34Z" fill="${beakFill}" stroke="${beakFill}" stroke-width="1.5" ${sw}/>`;
+    body+=`</g>`;
+  }
+  return {legs,body};
+}
 function drawPet(type,G,o){
   o=o||{};
-  const sp=SPECIES[type],duck=type==="duck";
-  const grow=clamp((G-1)/3);
-  const V=VARIANTS[o.variant]||VARIANTS.white;
-  const col=V.body,darkFace=!!(V.dark||V.head);
-  const faceInk=darkFace?PAPER:INK;
-  const rx=lerp(24,32,grow)*(duck?1.08:1),ry=lerp(23,30,grow);
-  const leg=lerp(8,11,grow),sc=lerp(.75,1,grow);
-  const breathe=Math.sin((o.t||0)*2.2)*(o.sleep?1.4:.7);
-  const hop=o.hop||0;
-  const ph=(o.t||0)*9,walkBob=o.walk?Math.abs(Math.sin(ph))*2.2*sc:0;
-  const bx=100,by=GROUND-ry-leg-hop+breathe*.4-walkBob;
-  let out=`<ellipse cx="${bx}" cy="${GROUND+2}" rx="${f(rx*.9*(1-hop/70))}" ry="${f(3+3*sc)}" fill="${LINE}" opacity=".1"/>`;
-  if(o.seeds){[[58,2],[66,5],[72,1],[136,3],[144,6],[128,6],[150,1],[62,7]].forEach(([x,dy],i)=>{if(o.seedsLeft>i)out+=`<ellipse cx="${x}" cy="${GROUND+dy-2}" rx="2" ry="1.3" fill="${INK}" transform="rotate(${i*40} ${x} ${GROUND+dy-2})"/>`;});}
-  let legs="";
-  [bx-rx*.28,bx+rx*.28].forEach((x0,i)=>{
-    const q=ph+i*Math.PI;
-    const lift=o.walk?Math.max(0,Math.sin(q))*6*sc:0;
-    const hipX=x0,x=x0-(o.walk?Math.cos(q)*8*sc:0);
-    legs+=`<path d="M${f(hipX)} ${f(by+ry*.8)}L${f(x)} ${f(GROUND-lift)}" stroke="${sp.leg}" stroke-width="${f(2.4+.8*sc)}" stroke-linecap="round"/>`;
-    if(duck) legs+=`<ellipse cx="${f(x+2.5*sc)}" cy="${f(GROUND-1-lift)}" rx="${f(6.5*sc)}" ry="${f(2.2*sc)}" fill="${sp.leg}"/>`;
-    else legs+=`<path d="M${f(x-3.5*sc)} ${f(GROUND-lift)}h${f(8*sc)}" stroke="${sp.leg}" stroke-width="2.4" stroke-linecap="round"/>`;
-  });
-  out+=legs+`<g filter="url(#${o.fixedInk?"outlineFixed":"outline"})">`;
-  const pk=o.peck||0;
-  out+=`<g transform="translate(0 ${f(pk*6)}) rotate(${f(pk*15)} ${bx} ${GROUND})">`;
-  // side wings
-  const fl=o.flap||0,wc=V.dark?"#77766F":LINE;
-  [-1,1].forEach(d=>{
-    const sx=bx+d*(rx-1),sy=by-ry*.06;
-    out+=`<path d="M${f(sx)} ${f(sy)}q${f(d*rx*.3)} ${f(ry*.28)} ${f(-d*rx*.04)} ${f(ry*.58)}" stroke="${wc}" stroke-width="2.6" fill="none" stroke-linecap="round" transform="rotate(${f(d*fl*50)} ${f(sx)} ${f(sy)})"/>`;
-  });
-  // tuft
-  const tu=1-seg(grow,.5,1)*.25;
-  if(duck) out+=`<path d="M${f(bx)} ${f(by-ry+1)}q${f(-3)} ${f(-8)} ${f(5)} ${f(-11)}" stroke="${LINE}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
-  else out+=`<path d="M${f(bx-5)} ${f(by-ry+1)}q${f(-2)} ${f(-8)} ${f(-6)} ${f(-9)}M${f(bx)} ${f(by-ry)}q0 ${f(-9*tu)} 0 ${f(-11*tu)}M${f(bx+5)} ${f(by-ry+1)}q${f(2)} ${f(-8)} ${f(6)} ${f(-9)}" stroke="${LINE}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
-  // body
-  out+=`<ellipse cx="${bx}" cy="${f(by)}" rx="${f(rx)}" ry="${f(ry)}" fill="${col}" stroke="${LINE}" stroke-width="1.6"/>`;
-  if(V.head){const cy=by+ry*.12,w=rx*Math.sqrt(1-.0144*0);out+=`<path d="M${f(bx-rx*.99)} ${f(cy)}A${f(rx)} ${f(ry)} 0 0 1 ${f(bx+rx*.99)} ${f(cy)}Z" fill="${V.head}"/>`;}
-  // cheeks
-  const ck=darkFace&&V.dark?"#4A4944":TINT;
-  if(!V.head)[-1,1].forEach(d=>out+=`<ellipse cx="${f(bx+d*rx*.5)}" cy="${f(by+ry*.2)}" rx="${f(rx*.16)}" ry="${f(ry*.1)}" fill="${ck}"/>`);
-  // face
-  const ey=by-ry*(duck?.22:.12),er=Math.max(2.4,rx*.1),eyes=[bx-rx*.31,bx+rx*.31];
-  eyes.forEach((x,i)=>{
-    if(o.sleep||o.happy) out+=`<path d="M${f(x-er)} ${f(ey)}q${f(er)} ${o.happy?f(-er*1.3):f(er*1.1)} ${f(2*er)} 0" stroke="${faceInk}" stroke-width="1.9" fill="none" stroke-linecap="round"/>`;
-    else{
-      const b=o.blink||0;
-      if(darkFace&&b<.5) out+=`<circle cx="${f(x)}" cy="${f(ey)}" r="${f(er*1.75)}" fill="${PAPER}"/>`;
-      out+=`<ellipse cx="${f(x)}" cy="${f(ey)}" rx="${f(er)}" ry="${f(Math.max(.3,er*(1-b*.92)))}" fill="${INK}"/>`;
-    }
-    if(o.sad>0){
-      const d=i===0?1:-1;
-      out+=`<path d="M${f(x-er*1.4*d)} ${f(ey-er*1.6)}L${f(x+er*1.2*d)} ${f(ey-er*2.4)}" stroke="${faceInk}" stroke-width="1.5" stroke-linecap="round" opacity="${o.sad.toFixed(2)}"/>`;
-    }
-  });
-  if(o.sad>0){const x=eyes[1];out+=`<path d="M${f(x)} ${f(ey+er*1.3)}q${f(-er)} ${f(er*1.7)} 0 ${f(er*2.3)}q${f(er)} ${f(-er*.6)} 0 ${f(-er*2.3)}z" fill="${PAPER}" stroke="${INK}" stroke-width="1.1" opacity="${o.sad.toFixed(2)}"/>`;}
-  const bk=darkFace?TINT:sp.beak;
-  if(duck) out+=`<ellipse cx="${bx}" cy="${f(by+ry*.14)}" rx="${f(rx*.4)}" ry="${f(ry*.19)}" fill="${darkFace?TINT:TINT}" stroke="${LINE}" stroke-width="1.6"/>`;
-  else out+=`<path d="M${f(bx-rx*.15)} ${f(by+ry*.08)}L${f(bx+rx*.15)} ${f(by+ry*.08)}L${f(bx)} ${f(by+ry*.28)}Z" fill="${bk}" stroke="${bk}" stroke-width="1.2" stroke-linejoin="round"/>`;
-  out+=`</g></g>`;
-  return out;
+  const form=formOf(G),s=sizeOf(G),hop=o.hop||0,pk=o.peck||0,P=PECK[form];
+  const parts=petParts(type,form,o,G);
+  const tr=`translate(50 98) scale(${s.toFixed(3)}) translate(-50 -98)`;
+  const pose=pk>0?`translate(0 ${f(P.dip*pk)}) rotate(${f(P.th*pk)} ${P.px} 98)`:"";
+  const sh=`<ellipse cx="100" cy="${GROUND+2}" rx="${f(28*s*(1-hop/70))}" ry="${f(3+3*s)}" fill="${LINE}" opacity=".1"/>`;
+  return sh+`<g transform="translate(0 ${f(-hop)})">`+WORLD(`<g transform="${tr}"><g transform="${pose}">${parts.legs}${parts.body}</g></g>`)+`</g>`;
 }
 function drawHatch(type,h,t,variant){
-  const sp=SPECIES[type];
-  const baby=drawPet(type,1,{t,happy:h>.5,variant});
-  const sc=easeBack(seg(h,.12,.6));
-  let o=nestBack();
-  o+=`<g transform="translate(${f(-34*h)} ${f(-46*h+70*h*h)}) rotate(${f(-80*h)} 100 128)" opacity="${(1-seg(h,.55,1)).toFixed(2)}"><g clip-path="url(#clipTop)">${eggBody(sp)}</g></g>`;
+  const baby=drawPet(type,1,{t,happy:h>.5,variant,noCap:h<.75});
+  const sc=easeBack(seg(h,.12,.6)),fill=eggFill(type);
+  const bot="M27 68L35 59L42 67L50 57L58 67L66 59L73 68C72 84 62 92 50 92C38 92 28 84 27 68Z";
+  const top="M0 0L7 -7L14 0L21 -7L27 0C26 -17 12 -22 0 0Z";
+  let o=WORLD(`<path d="${eggShape()}" fill="${TINT}" opacity="0"/>`);
   o+=`<g transform="translate(100 ${GROUND}) scale(${sc.toFixed(3)}) translate(-100 ${-GROUND})">${baby}</g>`;
-  o+=`<g opacity="${(1-seg(h,.6,1)).toFixed(2)}" clip-path="url(#clipBot)">${eggBody(sp)}</g>`;
-  return o+nestFront();
+  o+=WORLD(`<path d="${bot}" fill="${fill}" stroke="${LINE}" stroke-width="3.2" stroke-linejoin="round" opacity="${(1-seg(h,.7,1)).toFixed(2)}"/>`);
+  o+=WORLD(`<g transform="translate(${f(30+30*h)} ${f(40-46*h+60*h*h)}) rotate(${f(-70*h)} 14 0)" opacity="${(1-seg(h,.5,.9)).toFixed(2)}"><path d="${top}" fill="${fill}" stroke="${LINE}" stroke-width="3.2" stroke-linejoin="round"/></g>`);
+  return o+WORLD(nestBowl());
 }
 function petSVG(type,G,o,vb){
-  if(!vb) vb=G<1?"40 64 120 116":G<2.5?"58 96 84 80":"40 64 120 116";
+  if(!vb) vb=G<1?"58 96 84 90":G<2?"66 106 68 72":G<3.2?"58 90 88 88":"50 70 100 108";
   return `<svg viewBox="${vb}" aria-hidden="true">${G<1?drawEgg(type,G,o||{}):drawPet(type,G,o||{})}</svg>`;
 }
 
@@ -498,7 +515,7 @@ function buildSpecies(){
   const row=$("#speciesRow");row.innerHTML="";
   Object.keys(SPECIES).forEach(k=>{
     const b=document.createElement("button");b.type="button";b.className="species";b.dataset.type=k;
-    b.innerHTML=petSVG(k,4,{},"52 56 96 120")+`<span>${SPECIES[k].name}</span>`;
+    b.innerHTML=petSVG(k,4,{},"50 70 100 108")+`<span>${SPECIES[k].name}</span>`;
     b.addEventListener("click",()=>{
       if(S.status!=="idle"||S.pet.sessions>0) return;
       const wasDefault=S.pet.name===SPECIES[S.pet.type].def;
@@ -882,7 +899,7 @@ function frame(now){
     const canHunt=focus&&st==="running"&&!reduced&&!S.override;
     if(!canHunt&&worm.phase!=="gulp")worm.phase="none";
     if(canHunt&&worm.phase==="none"&&clock>worm.next){worm.phase="approach";worm.x=360;worm.t=clock;}
-    const sz=.55+.45*clamp((G-1)/3),reach=200+26*sz+8;
+    const pt=peckTip(G),reach=200+pt.dx+2;
     if(worm.phase==="approach"){
       worm.x-=dt*30;
       if(worm.x<=reach){worm.x=reach;worm.phase="peck";worm.t=clock;}
@@ -890,7 +907,7 @@ function frame(now){
     }else if(worm.phase==="peck"){
       const k=(clock-worm.t)/.55;wormHold=true;
       if(k>=1){worm.phase="gulp";worm.t=clock;cheep();floatAt(HEART(true),petPct+4,30,2);countWorm();}
-      else{wormPeck=Math.sin(k*Math.PI);if(k<.5)wormSvg=drawWorm(worm.x,clock,1);}
+      else{wormPeck=Math.sin(k*Math.PI);if(k<.5)wormSvg=`<g transform="translate(0 ${f(-pt.lift*easeOut(Math.min(1,k*2.4)))})">${drawWorm(worm.x,clock,1)}</g>`;}
     }else if(worm.phase==="gulp"){
       wormHold=true;wormHappy=true;
       if(clock-worm.t>1.4){worm.phase="none";worm.next=clock+12+Math.random()*20;}
