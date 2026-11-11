@@ -361,10 +361,13 @@ const sizeOf=G=>sizeF(formOf(G),G);
 const ss=t=>{t=clamp(t);return t*t*(3-2*t);};
 /* when the form changes, the old form fades into the new one (o.mix, driven by the frame loop) */
 function formMix(G,o){return o&&o.mix?o.mix:[[formOf(G),1]];}
-/* rigid peck poses for baby/teen: rotate about (px,98) */
-const PECK=[{th:42,px:57,dip:0,tx:75,ty:76},{th:50,px:51,dip:3,tx:90,ty:45}];
-const PECK_G=[{th:42,px:57,dip:0,tx:79,ty:75},{th:56,px:52,dip:3,tx:90,ty:35}];
-const peckOf=(type,k)=>(type==="goose"?PECK_G:PECK)[k];
+/* baby/teen peck: body tilts about the feet (th) while the head nods about a neck pivot (nd) - eased, no rigid fold */
+const PECKS={
+  chick:[{th:28,px:57,dip:2,nd:32,nx:50,ny:72,tx:74,ty:76},{th:22,px:51,dip:2,nd:60,nx:56,ny:58,tx:90,ty:45}],
+  duck:[{th:28,px:57,dip:2,nd:24,nx:50,ny:72,tx:76,ty:76},{th:22,px:51,dip:2,nd:47,nx:56,ny:58,tx:94.5,ty:47}],
+  goose:[{th:28,px:57,dip:0,nd:25,nx:50,ny:72,tx:79,ty:75}]
+};
+const peckOf=(type,k)=>PECKS[type][k];
 /* adults bow with a smooth arc through the neck + body tilt (no hard fold) */
 const PCD="M58 14C70 12 78 22 76 32C75 38 72 40 74 48C82 60 80 74 66 82C56 88 40 88 30 82C18 74 16 54 24 42C28 36 38 36 44 32C48 22 50 14 58 14Z";
 const PGS="M60 3C70 3 74 10 74 18C74 26 72 32 72 40C72 46 77 50 79 56C84 68 78 80 66 84C56 90 40 90 30 84C18 76 16 58 24 48C28 44 36 42 42 40C48 36 48 24 50 16C51 8 54 3 60 3Z";
@@ -372,7 +375,8 @@ const PTG="M60 22C69 22 73 28 73 35C73 42 71 46 72 52C73 57 78 60 80 64C85 74 79
 const ADULT={
   chick:{path:PCD,px:52,py:62,L:38,bx:24,bw:12,tilt:48,tip:[87,29],base:0},
   duck:{path:PCD,px:52,py:62,L:38,bx:24,bw:12,tilt:48,tip:[91,31],base:4},
-  goose:{path:PGS,px:61,py:56,L:32,bx:22,bw:12,tilt:42,tip:[92.5,18],base:0}
+  goose:{path:PGS,px:61,py:56,L:32,bx:22,bw:12,tilt:42,tip:[92.5,18],base:0},
+  tg:{path:PTG,px:61,py:58,L:28,bx:22,bw:12,tilt:46,tip:[90.5,35],base:0}
 };
 function bendPt(c,x,y,phi){
   let r=phi*Math.PI/180;if(Math.abs(r)<.002)return [x,y,0];
@@ -396,10 +400,10 @@ Object.keys(ADULT).forEach(k=>{const c=ADULT[k];let p,ph;for(ph=0;ph<=170;ph+=.5
 function adultPose(type,pk){const c=ADULT[type];return {phi:c.phiM*pk,tilt:c.tilt*pk,dip:6*pk};}
 function peckTip(type,G){
   const k=formOf(G),s=sizeOf(G);
-  if(k===2){const c=ADULT[type];return {dx:(c.tipX-PX)*s,lift:Math.max(0,(98-c.tipY)*s)};}
-  const P=peckOf(type,k),r=P.th*Math.PI/180,dx=P.tx-P.px,dy=P.ty-98;
-  const x=P.px+dx*Math.cos(r)-dy*Math.sin(r),y=98+dx*Math.sin(r)+dy*Math.cos(r)+P.dip;
-  return {dx:(x-PX)*s,lift:Math.max(0,(98-y)*s)};
+  if(k===2||(k===1&&type==="goose")){const c=ADULT[k===2?type:"tg"];return {dx:(c.tipX-PX)*s,lift:Math.max(0,(98-c.tipY)*s)};}
+  const P=peckOf(type,k),R=(x,y,cx,cy,t)=>{const r=t*Math.PI/180,co=Math.cos(r),si=Math.sin(r);return [cx+(x-cx)*co-(y-cy)*si,cy+(x-cx)*si+(y-cy)*co];};
+  let q=R(P.tx,P.ty,P.nx,P.ny,P.nd);q=R(q[0],q[1],P.px,98,P.th);
+  return {dx:(q[0]-PX)*s,lift:Math.max(0,(98-q[1]-P.dip)*s)};
 }
 function eggShape(){return "M50 30C66 30 76 52 74 68C72 84 62 92 50 92C38 92 28 84 26 68C24 52 34 30 50 30Z";}
 function eggFill(type){return type==="duck"?TINT2:PAPER;}
@@ -439,7 +443,7 @@ function petParts(type,form,o,G){
   [[xs[0],0],[xs[1],Math.PI]].forEach(([x0,off])=>{
     const q=ph+off,lift=walk?Math.max(0,Math.sin(q))*5*k:0,x=x0-(walk?Math.cos(q)*5*k:0),gy=98-lift;
     let tx=x0,ty=top;
-    if(form===2){const r=rotPt(x0,ltop,o.tilt||0);tx=r[0];ty=r[1]+dyA+(o.dip||0);}
+    if(form===2||(form===1&&goose)){const r=rotPt(x0,form===2?ltop:top+b,o.tilt||0);tx=r[0];ty=r[1]+dyA+(o.dip||0);}
     legs+=`<path d="M${f(tx)} ${f(ty)}L${f(x)} ${f(gy)}" ${S} stroke-width="3" fill="none" ${sw}/>`;
     if(web)legs+=`<ellipse cx="${f(x+3)}" cy="${f(gy-.5)}" rx="${form===0?6:goose&&form===2?8:7}" ry="2.2" fill="${TINT}" ${S} stroke-width="2.2"/>`;
     else legs+=`<path d="M${f(x-4)} ${f(gy)}L${f(x+6)} ${f(gy)}" ${S} stroke-width="2.6" fill="none" ${sw}/>`;
@@ -466,29 +470,38 @@ function petParts(type,form,o,G){
     const cy=72-b,cap=(duck||goose)?TINT2:PAPER,R=goose?20:19;
     body+=fan(goose?30:32,cy,(duck||goose)?[-150]:[-160,-130],5,5.5,3);
     body+=`<circle cx="50" cy="${f(cy)}" r="${R}" fill="${col}" ${S} stroke-width="3.2"/>`;
-    if(V.head)body+=`<path d="M${50-R} ${f(cy-2)}A${R} ${R} 0 0 1 ${50+R} ${f(cy-2)}Z" fill="${V.head}"/>`;
+    const nodT=`<g transform="rotate(${f(o.nod||0)} 50 ${f(cy)})">`;
+    if(V.head)body+=`${nodT}<path d="M${50-R} ${f(cy-2)}A${R} ${R} 0 0 1 ${50+R} ${f(cy-2)}Z" fill="${V.head}"/></g>`;
     body+=wing(48,cy+1,.8,2.2);
-    body+=(goose?cheek(62,cy+6):cheek(61,cy+5))+eye(59,cy-1,3.2);
+    body+=nodT+(goose?cheek(62,cy+6):cheek(61,cy+5))+eye(59,cy-1,3.2);
     body+=goose?`<ellipse cx="71" cy="${f(cy+3)}" rx="8" ry="3.8" fill="${TINT}" ${S} stroke-width="2.2"/>`:duck?`<ellipse cx="69" cy="${f(cy+4)}" rx="7" ry="3.6" fill="${TINT}" ${S} stroke-width="2.2"/>`:`<path d="M65 ${f(cy)}L74 ${f(cy+4)}L65 ${f(cy+8)}Z" fill="${beakFill}" stroke="${beakLine}" stroke-width="2" ${sw}/>`;
     if(!o.noCap){const ck=goose?31:30;body+=`<path d="M33 ${f(cy-6)}L39 ${f(cy-14)}L45 ${f(cy-8)}L51 ${f(cy-16)}L57 ${f(cy-8)}L63 ${f(cy-14)}L67 ${f(cy-6)}C66 ${f(cy-ck)} 34 ${f(cy-ck)} 33 ${f(cy-6)}Z" fill="${cap}" ${S} stroke-width="3.2" ${sw}/>`;}
+    body+=`</g>`;
   }else if(form===1&&goose){
-    body+=`<g transform="translate(0 ${f(-b)})">`;
+    const c=ADULT.tg,phi=o.phi||0,tilt=o.tilt||0,dip=o.dip||0;
+    const F=(x,y)=>featPt(c,x,y,phi);
+    body+=`<g transform="translate(0 ${f(dip-b)}) rotate(${f(tilt)} 56 86)">`;
     body+=fan(26,66,[-160,-130],8,7.5,4);
-    body+=`<path d="${PTG}" fill="${col}" ${S} stroke-width="3.2" ${sw}/>`;
-    body+=maskClip(PTG,"M40 10L90 10L90 52Q66 60 40 48Z");
+    const BP=bendPath(c,PTG,phi);
+    body+=`<path d="${BP}" fill="${col}" ${S} stroke-width="3.2" ${sw}/>`;
+    body+=maskClip(BP,bendPath(c,"M40 10L90 10L90 52Q66 60 40 48Z",phi));
     body+=wing(48,62,.9,2.4);
-    body+=cheek(69,38)+eye(65,31,2.9);
-    body+=`<ellipse cx="81" cy="35" rx="9.5" ry="4.4" fill="${TINT}" ${S} stroke-width="2.3"/>`;
+    const ck=F(69,38),ey=F(65,31),bq=F(81,35);
+    body+=cheek(ck[0],ck[1])+eye(ey[0],ey[1],2.9);
+    body+=`<ellipse cx="${f(bq[0])}" cy="${f(bq[1])}" rx="9.5" ry="4.4" transform="rotate(${f(phi)} ${f(bq[0])} ${f(bq[1])})" fill="${TINT}" ${S} stroke-width="2.3"/>`;
     body+=`</g>`;
   }else if(form===1){
-    const bb=b;
+    const bb=b,nT=`<g transform="rotate(${f(o.nod||0)} 56 ${f(58-bb)})">`;
     body+=duck?fan(24,64-bb,[-150],7,7,4):fan(24,64-bb,[-160,-130],7,7,4);
+    body+=nT;
     body+=duck?`<path d="M64 ${f(31-bb)}q-3 -7 3 -9" ${S} fill="none" stroke-width="2.6" ${sw}/>`:`<circle cx="61" cy="${f(31-bb)}" r="4" fill="${combFill}" ${S} stroke-width="2.3"/><circle cx="68" cy="${f(29-bb)}" r="4" fill="${combFill}" ${S} stroke-width="2.3"/>`;
+    body+=`</g>`;
     body+=`<ellipse cx="44" cy="${f(68-bb)}" rx="${duck?28:26}" ry="22" fill="${col}" ${S} stroke-width="3.2"/>`;
-    body+=`<circle cx="66" cy="${f(46-bb)}" r="15" fill="${V.head||col}" ${S} stroke-width="3.2"/><circle cx="57" cy="${f(56-bb)}" r="10" fill="${col}"/>`;
+    body+=nT+`<circle cx="66" cy="${f(46-bb)}" r="15" fill="${V.head||col}" ${S} stroke-width="3.2"/></g><circle cx="57" cy="${f(56-bb)}" r="10" fill="${col}"/>`;
     body+=`<g transform="translate(21 ${f(29-bb)}) scale(.6)"><g transform="rotate(${f(wsw*.8)} 56 52)"><path d="${wingPath(48,52,1)}" fill="${wingFill}" ${S} stroke-width="3.4" ${sw}/></g></g>`;
-    body+=cheek(73,52-bb)+eye(70,44-bb,2.9);
+    body+=nT+cheek(73,52-bb)+eye(70,44-bb,2.9);
     body+=duck?`<ellipse cx="86" cy="${f(47-bb)}" rx="8.5" ry="4.2" fill="${TINT}" ${S} stroke-width="2.3"/>`:`<path d="M80 ${f(41-bb)}L90 ${f(45-bb)}L80 ${f(49-bb)}Z" fill="${beakFill}" stroke="${beakLine}" stroke-width="2" ${sw}/>`;
+    body+=`</g>`;
   }else{
     const c=ADULT[type],phi=o.phi||0,tilt=o.tilt||0,dip=o.dip||0,dy=(duck?4:0)-b;
     const F=(x,y)=>featPt(c,x,y,phi);
@@ -519,7 +532,8 @@ function drawPet(type,G,o){
     let po=o,pose="";
     if(pk>0){
       if(form===2)po=Object.assign({},o,adultPose(type,pk));
-      else{const P=peckOf(type,form);pose=`translate(0 ${f(P.dip*pk)}) rotate(${f(P.th*pk)} ${P.px} 98)`;}
+      else if(form===1&&type==="goose")po=Object.assign({},o,adultPose("tg",pk));
+      else{const P=peckOf(type,form);po=Object.assign({},o,{nod:P.nd*pk,nx:P.nx,ny:P.ny});pose=`translate(0 ${f(P.dip*pk)}) rotate(${f(P.th*pk)} ${P.px} 98)`;}
     }
     const parts=petParts(type,form,po,G);
     inner+=`<g${a<.999?` opacity="${a.toFixed(3)}"`:""} transform="${tr}"><g transform="${pose}">${parts.legs}${parts.body}</g></g>`;
