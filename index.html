@@ -336,6 +336,7 @@ html.rm .dialog{animation:none}
   <div class="group"><label class="gl" for="task">Focusing on (optional)</label><input class="field" id="task" maxlength="60" placeholder="e.g. Review the GL module" autocomplete="off"></div>
   <div class="group"><span class="gl">Theme</span><div class="row theme-row" id="themeRow"><button type="button" class="dur" data-theme-pick="auto">Auto</button><button type="button" class="dur" data-theme-pick="light">Light</button><button type="button" class="dur" data-theme-pick="dark">Dark</button></div></div>
   <div class="group"><span class="gl">Motion</span><div class="row"><button type="button" class="dur" data-motion-pick="full">Full</button><button type="button" class="dur" data-motion-pick="reduced">Reduced</button></div><p class="note">Some phones turn system animations off in battery saver. Pomofarm keeps its animations on unless you pick Reduced here.</p></div>
+  <label class="switch" for="keepOn">Keep screen on while the timer runs<input type="checkbox" id="keepOn"></label>
   <label class="switch" for="fast">Quick preview (1 min = 1 sec)<input type="checkbox" id="fast"></label>
   <button type="button" class="text-btn" id="clear" style="align-self:flex-start;padding-left:0">Reset everything</button>
   <div class="group about" id="about">
@@ -604,11 +605,12 @@ function petSVG(type,G,o,vb){
 /* ---------- state ---------- */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,rounds:S.rounds,theme:S.theme,motion:S.motion,worms:S.worms}));}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,worms:S.worms}));}catch(e){}}
 const saved=load();
 function newPet(type){return {type,name:SPECIES[type].def,sessions:0,variant:randomVariant()};}
 const S={
   motion:saved.motion==="reduced"?"reduced":"full",
+  keepOn:saved.keepOn!==false,
   mode:"focus",status:"idle",fast:false,duration:0,endAt:0,remaining:0,
   pet:saved.pet&&SPECIES[saved.pet.type]?Object.assign({variant:randomVariant()},saved.pet):newPet("chick"),
   farm:Array.isArray(saved.farm)?saved.farm.filter(p=>SPECIES[p.type]):[],
@@ -1069,6 +1071,7 @@ function curG(){
   return gOf(p);
 }
 function updateUI(){
+  if(typeof syncWake==="function")syncWake();
   const focus=S.mode==="focus",st=S.status,active=st==="running"||st==="paused",p=S.pet,sp=SPECIES[p.type];
   document.querySelectorAll(".tabs button").forEach(b=>{const on=b.dataset.mode===S.mode||(b.dataset.mode==="short"&&S.mode==="long");b.setAttribute("aria-pressed",String(on));b.disabled=active&&!on;});
   const canPick=p.sessions===0&&!active;
@@ -1135,7 +1138,7 @@ function runningMsg(G,p){
   if(G<1) return G<.3?"The egg is warm. Keep focusing.":G<.55?"Something's wiggling inside.":G<.8?"A crack! Keep going.":"It's about to hatch!";
   return `${p.name} is growing…`;
 }
-let napT=0,rest=0;const NAP_AFTER=10;
+let wl=null,napT=0,rest=0;const NAP_AFTER=10;
 let lastTimeStr="",last=0,clock=0,lastG=null,lastForm=null,formFade=null;
 let RAF=f=>requestAnimationFrame(f),curLoop=null,loopGen=0;
 function startLoop(win){const g=++loopGen;curLoop=()=>{if(g!==loopGen)return;frame(performance.now());};RAF=f=>win.requestAnimationFrame(f);win.requestAnimationFrame(curLoop);}
@@ -1229,6 +1232,17 @@ $("#petHit").addEventListener("click",()=>{
 });
 nameEl.addEventListener("input",()=>{S.pet.name=nameEl.value.trim()||SPECIES[S.pet.type].def;save();chip.textContent=S.pet.name;});
 nameEl.addEventListener("blur",()=>{nameEl.value=S.pet.name;updateUI();});
+/* screen wake lock: the screen stays on while a session runs (released when paused, idle or hidden) */
+async function syncWake(){
+  const want=S.keepOn&&S.status==="running"&&document.visibilityState==="visible";
+  try{
+    if(want&&!wl&&navigator.wakeLock){wl=await navigator.wakeLock.request("screen");wl.addEventListener("release",()=>{wl=null;});}
+    else if(!want&&wl){const w=wl;wl=null;await w.release();}
+  }catch(e){wl=null;}
+}
+document.addEventListener("visibilitychange",syncWake);
+const keepEl=$("#keepOn");keepEl.checked=S.keepOn;
+keepEl.addEventListener("change",()=>{S.keepOn=keepEl.checked;save();syncWake();});
 fastEl.addEventListener("change",()=>{S.fast=fastEl.checked;if(S.status==="idle")reset();});
 taskEl.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();if(S.status==="idle"){ensureAudio();start();}}});
 document.addEventListener("keydown",e=>{
