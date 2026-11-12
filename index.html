@@ -660,7 +660,7 @@ function petSVG(type,G,o,vb){
 }
 
 /* ---------- state ---------- */
-const APP_VERSION="1.0.40 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v40) */
+const APP_VERSION="1.0.41 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v41) */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,keepAud:S.keepAud,ambience:S.ambience,worms:S.worms,seenTip:S.seenTip,run:(S.status==="running"||S.status==="paused")?{mode:S.mode,status:S.status,endAt:S.endAt,remaining:S.remaining,duration:S.duration,nextBreak:S.nextBreak,override:S.override}:null}));}catch(e){}}
@@ -695,14 +695,16 @@ const durMs=()=>S.mins[S.mode]*60000/speed();
 let ac=null;
 /* Browsers (and some sound cards / Bluetooth speakers) put the audio output to sleep after a few silent seconds, and the first sound afterwards loses its start (a thin "tas").
    Optional (Settings > Keep sound ready): a sub-audible 10 Hz signal keeps the output awake while the page is visible. It also keeps the hardware amp open, which on some devices is a faint hiss, so it is off by default. */
-let keepNode=null;
+let keepNode=null,keepUntil=0,keepTimer=0;
+function wakeFor(sec){keepUntil=Math.max(keepUntil,Date.now()+sec*1000);keepAwake();clearTimeout(keepTimer);keepTimer=setTimeout(keepAwake,Math.max(0,keepUntil-Date.now())+80);}
 function keepAwake(){
   try{
-    if(!S.keepAud||!ac||ac.state!=="running"||document.visibilityState==="hidden"){if(keepNode&&(!S.keepAud||document.visibilityState==="hidden")){try{keepNode.stop();}catch(e){}keepNode=null;}return;}
+    const want=(S.keepAud||Date.now()<keepUntil)&&ac&&ac.state==="running"&&document.visibilityState!=="hidden";
+    if(!want){if(keepNode){try{keepNode.stop();}catch(e){}keepNode=null;}return;}
     if(keepNode)return;
     /* 10 Hz sine: far below hearing and below what speakers reproduce, but not digital silence, so the output stays open */
     const n=ac.createOscillator(),g=ac.createGain();n.type="sine";n.frequency.value=10;
-    g.gain.setValueAtTime(0,ac.currentTime);g.gain.linearRampToValueAtTime(.01,ac.currentTime+1.5);
+    g.gain.setValueAtTime(0,ac.currentTime);g.gain.linearRampToValueAtTime(.01,ac.currentTime+.4);
     n.connect(g);g.connect(ac.destination);n.start();keepNode=n;
   }catch(e){}
 }
@@ -1282,7 +1284,7 @@ function frame(now){
     let wormPeck=0,wormHold=false,wormHappy=false;
     const canHunt=focus&&st==="running"&&!reduced&&!S.override;
     if(!canHunt&&worm.phase!=="gulp")worm.phase="none";
-    if(canHunt&&worm.phase==="none"&&clock>worm.next){worm.phase="approach";worm.x=360;worm.t=clock;}
+    if(canHunt&&worm.phase==="none"&&clock>worm.next){worm.phase="approach";worm.x=360;worm.t=clock;wakeFor(9);}
     const pt=peckTip(p.type,G),reach=200+pt.dx+2;
     if(worm.phase==="approach"){
       worm.x-=dt*30;
@@ -1333,6 +1335,7 @@ btnMain.addEventListener("click",()=>{
   else if(st==="failed")reset();else setMode("focus");
 });
 btnSec.addEventListener("click",()=>{if(S.mode==="focus")giveUp();else setMode("focus");});
+$("#petHit").addEventListener("pointerdown",()=>{ensureAudio();wakeFor(3);});
 $("#petHit").addEventListener("click",()=>{
   ensureAudio();
   if(curG()<1&&!S.override){beh.tapWob=8;return;}
