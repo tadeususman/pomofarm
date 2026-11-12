@@ -14,3 +14,7 @@ If a stage has no file of its own, the adult recording is used (pitched up for b
 Extra credits: baby duck "quack" by baby_duck_stu9, "natural duck" by sahidullah, "goose honking" by jasonlee3071 (all Pixabay).
 
 `ambience-farm.mp3` - looping farm ambience (made seamless with a crossfade) that plays while My farm is open; can be switched off in Settings. Source: "ambience farm 02" by freesound_community (Pixabay).
+
+## Naming per growth stage
+`<type>-baby*.mp3`, `<type>-teen*.mp3` and `<type>-adult*.mp3` (numbered 2..6 for variants) are used for that growth stage when present.
+Plain `<type>*.mp3` is the fallback for every stage (pitched to fit). The chicken currently only has chick peeps; add `chick-adult.mp3` (a hen cluck or rooster crow) to give the grown-up chicken its own voice.

@@ -660,7 +660,7 @@ function petSVG(type,G,o,vb){
 }
 
 /* ---------- state ---------- */
-const APP_VERSION="1.0.42 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v42) */
+const APP_VERSION="1.0.43 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v43) */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,keepAud:S.keepAud,ambience:S.ambience,worms:S.worms,seenTip:S.seenTip,run:(S.status==="running"||S.status==="paused")?{mode:S.mode,status:S.status,endAt:S.endAt,remaining:S.remaining,duration:S.duration,nextBreak:S.nextBreak,override:S.override}:null}));}catch(e){}}
@@ -762,7 +762,7 @@ function loadSamples(){
   if(!/^https?:$/.test(location.protocol))return;
   /* sounds/chick.mp3 plus optional chick2.mp3, chick3.mp3 ... (random variant each time) */
   loadSamples.ready=Promise.all(["chick","duck","goose"].map(async t=>{
-    for(const st of ["","-baby","-teen"])for(let v=1;v<=6;v++){
+    for(const st of ["","-baby","-teen","-adult"])for(let v=1;v<=6;v++){
       let got=false;
       for(const ext of (st===""&&v===1?["mp3","ogg","wav","m4a"]:["mp3"])){
         try{const r=await fetch(`sounds/${t}${st}${v>1?v:""}.${ext}`);if(!r.ok)continue;(samples[t+st]=samples[t+st]||[]).push(await ac.decodeAudioData(await r.arrayBuffer()));got=true;break;}catch(e){}
@@ -776,7 +776,7 @@ try{ensureAudio();}catch(e){}
 function playSample(buf,G,mult,type,native){
   const n=ac.currentTime+.14,gr=clamp(((G||1)-1)/3),src=ac.createBufferSource(),g=ac.createGain();
   src.buffer=buf;
-  const tg=clamp(((G||1)-1.6)/2.2),base=native?1:type==="chick"?lerp(1,.9,Math.pow(gr,.8)):lerp(2.1,1,Math.pow(tg,.7)),rate=base*(.96+Math.random()*.08);
+  const tg=clamp(((G||1)-1.6)/2.2),base=native?1:type==="chick"?lerp(1,.76,Math.pow(gr,.8)):lerp(2.1,1,Math.pow(tg,.7)),rate=base*(.96+Math.random()*.08);
   src.playbackRate.value=rate;
   const dur=Math.min(buf.duration/rate,lerp(.6,1.4,gr)),vol=lerp(type==="chick"?.6:.45,.9,gr)*(mult||1);
   /* soft attack (no click on the first sample) and, for the chick, a low-pass that takes the sharp "ts" off the highest harmonics */
@@ -789,7 +789,7 @@ function voice(type,G,mult){
   if(!ac)return;
   if(ac.state!=="running"){try{ac.resume();}catch(e){}}
   /* a recording made for this growth stage (duck-baby, goose-teen ...) wins; otherwise the adult one, pitched */
-  const stg=G<2?"-baby":G<3.2?"-teen":"",own=samples[type+stg]&&samples[type+stg].length?samples[type+stg]:null,pool=own||samples[type];
+  const stg=G<2?"-baby":G<3.2?"-teen":"-adult",own=samples[type+stg]&&samples[type+stg].length?samples[type+stg]:null,pool=own||samples[type];
   if(pool&&pool.length){try{playSample(pool[Math.floor(Math.random()*pool.length)],G,mult,type,!!own);return;}catch(e){}}
   /* recordings still loading: wait for them instead of falling back to the synth (it sounded like ticks) */
   if(loadSamples.ready&&!loadSamples.fin){loadSamples.ready.then(()=>voice(type,G,mult));return;}
