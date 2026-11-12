@@ -733,7 +733,7 @@ function loadSamples(){
   if(!ac||loadSamples.done)return;loadSamples.done=true;
   if(!/^https?:$/.test(location.protocol))return;
   /* sounds/chick.mp3 plus optional chick2.mp3, chick3.mp3 ... (random variant each time) */
-  ["chick","duck","goose"].forEach(async t=>{
+  loadSamples.ready=Promise.all(["chick","duck","goose"].map(async t=>{
     for(const st of ["","-baby","-teen"])for(let v=1;v<=6;v++){
       let got=false;
       for(const ext of ["mp3","ogg","wav","m4a"]){
@@ -741,8 +741,10 @@ function loadSamples(){
       }
       if(!got)break;
     }
-  });
+  }));
+  loadSamples.ready.then(()=>{loadSamples.fin=true;});
 }
+try{ensureAudio();}catch(e){}
 function playSample(buf,G,mult,type,native){
   const n=ac.currentTime+.01,gr=clamp(((G||1)-1)/3),src=ac.createBufferSource(),g=ac.createGain();
   src.buffer=buf;
@@ -758,6 +760,8 @@ function voice(type,G,mult){
   /* a recording made for this growth stage (duck-baby, goose-teen ...) wins; otherwise the adult one, pitched */
   const stg=G<2?"-baby":G<3.2?"-teen":"",own=samples[type+stg]&&samples[type+stg].length?samples[type+stg]:null,pool=own||samples[type];
   if(pool&&pool.length){try{playSample(pool[Math.floor(Math.random()*pool.length)],G,mult,type,!!own);return;}catch(e){}}
+  /* recordings still loading: wait for them instead of falling back to the synth (it sounded like ticks) */
+  if(loadSamples.ready&&!loadSamples.fin){loadSamples.ready.then(()=>voice(type,G,mult));return;}
   try{
     const n=ac.currentTime+.01,gr=clamp(((G||1)-1)/3),vol=lerp(.08,.2,gr)*(mult||1),j=.95+Math.random()*.1;
     if(type==="goose"){
