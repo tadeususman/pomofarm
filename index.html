@@ -709,7 +709,7 @@ function petSVG(type,G,o,vb){
 }
 
 /* ---------- state ---------- */
-const APP_VERSION="1.0.56 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v56) */
+const APP_VERSION="1.0.57 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v57) */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,keepAud:S.keepAud,ambience:S.ambience,worms:S.worms,seenTip:S.seenTip,run:(S.status==="running"||S.status==="paused")?{mode:S.mode,status:S.status,endAt:S.endAt,remaining:S.remaining,duration:S.duration,nextBreak:S.nextBreak,override:S.override}:null}));}catch(e){}}
@@ -877,6 +877,29 @@ function voice(type,G,mult){
   }catch(e){}
 }
 function cheep(){voice(S.pet.type,curG());}
+/* egg sounds: a dry "tok" on the shell, crackly once the shell is cracked, a muffled peep from inside near hatching */
+let knockN=0,knockT=0;
+function eggKnock(G){
+  if(!ac||ac.state!=="running")return;
+  try{
+    const n=ac.currentTime+.02,now=Date.now();
+    knockN=now-knockT<1300?knockN+1:0;knockT=now;
+    const fr=Math.max(330,640*Math.pow(.93,Math.min(knockN,6))*(.95+Math.random()*.1));
+    tone(fr,n,.09,.3,"sine",fr*.62);
+    tone(fr*2.3,n,.035,.07,"triangle",fr*1.4);
+    noiseBurst(n,.03,.35,2400,.9);
+    if(G>.42){noiseBurst(n+.045,.025,.18,4200,2);noiseBurst(n+.09,.02,.12,3600,2);}
+    if(G>.8&&Math.random()<.7)setTimeout(()=>{try{voice(S.pet.type,1,.35);}catch(e){}},260);
+  }catch(e){}
+}
+function eggCrack(){
+  if(!ac||ac.state!=="running")return;
+  try{
+    const n=ac.currentTime+.01;
+    noiseBurst(n,.05,.5,3000,1.2);noiseBurst(n+.06,.04,.35,4500,2);noiseBurst(n+.12,.05,.3,2200,1);
+    tone(520,n,.08,.18,"sine",300);
+  }catch(e){}
+}
 
 /* ---------- elements ---------- */
 const stage=$("#stage"),petG=$("#pet"),timeEl=$("#time"),statusEl=$("#status"),chip=$("#chip"),taskEl=$("#task"),nameEl=$("#petName"),taskline=$("#taskline");
@@ -1418,7 +1441,7 @@ function frame(now){
   const pct=((mover.x-30)/340*100).toFixed(2)+"%";
   $("#petHit").style.left=pct;$(".zzz").style.left="calc("+pct+" + 6%)";petPct=(mover.x-30)/340*100;
     chip.textContent=p.name;
-  if(lastG!==null&&lastG<1&&G>=1&&!S.override){S.hatchAt=now;burst(14);cheep();}
+  if(lastG!==null&&lastG<1&&G>=1&&!S.override){S.hatchAt=now;burst(14);eggCrack();setTimeout(cheep,220);}
   lastG=G;
   if(focus&&st==="running") statusEl.textContent=worm.phase==="gulp"?`${p.name} found a worm!`:runningMsg(G,p);
   const ms=st==="idle"?S.mins[S.mode]*60000:S.remaining*speed();
@@ -1443,7 +1466,7 @@ btnSec.addEventListener("click",()=>{if(S.mode==="focus")giveUp();else setMode("
 $("#petHit").addEventListener("pointerdown",()=>{ensureAudio();wakeFor(3);});
 $("#petHit").addEventListener("click",()=>{
   ensureAudio();
-  if(curG()<1&&!S.override){beh.tapWob=8;return;}
+  if(curG()<1&&!S.override){beh.tapWob=8;eggKnock(curG());return;}
   if(S.status==="paused") return;
   if(napT>NAP_AFTER)napT=0;
   beh.hopT=clock;cheep();floatAt(HEART(true),petPct,30,3);
