@@ -652,7 +652,7 @@ function petSVG(type,G,o,vb){
 /* ---------- state ---------- */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,ambience:S.ambience,worms:S.worms,seenTip:S.seenTip}));}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,ambience:S.ambience,worms:S.worms,seenTip:S.seenTip,run:(S.status==="running"||S.status==="paused")?{mode:S.mode,status:S.status,endAt:S.endAt,remaining:S.remaining,duration:S.duration,nextBreak:S.nextBreak,override:S.override}:null}));}catch(e){}}
 const saved=load();
 function newPet(type){return {type,name:SPECIES[type].def,sessions:0,variant:randomVariant()};}
 const S={
@@ -872,10 +872,10 @@ function buildDurs(){
 
 /* ---------- actions ---------- */
 function setMode(m){S.mode=m;if(m==="focus")S.override=null;buildDurs();reset();}
-function reset(){S.status="idle";S.remaining=durMs();S.duration=durMs();hideOverlay();updateUI();}
-function start(){if(S.mode==="focus")S.override=null;worm.phase="none";worm.next=clock+5+Math.random()*7;S.duration=durMs();S.remaining=S.duration;S.endAt=Date.now()+S.duration;S.status="running";updateUI();}
-function pause(){S.remaining=Math.max(0,S.endAt-Date.now());S.status="paused";updateUI();}
-function resume(){S.endAt=Date.now()+S.remaining;S.status="running";updateUI();}
+function reset(){S.status="idle";S.remaining=durMs();S.duration=durMs();hideOverlay();updateUI();save();}
+function start(){if(S.mode==="focus")S.override=null;worm.phase="none";worm.next=clock+5+Math.random()*7;S.duration=durMs();S.remaining=S.duration;S.endAt=Date.now()+S.duration;S.status="running";updateUI();save();}
+function pause(){S.remaining=Math.max(0,S.endAt-Date.now());S.status="paused";updateUI();save();}
+function resume(){S.endAt=Date.now()+S.remaining;S.status="running";updateUI();save();}
 let confirmTimer=null;
 function giveUp(){
   if(!btnSec.classList.contains("warn")){
@@ -1396,7 +1396,15 @@ document.getElementById("themeBtn").addEventListener("click",()=>{S.theme=docume
 try{if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register("sw.js").catch(()=>{});}catch(e){}
 window.__FP={voice,ensureAudio,drawPet,drawEgg,drawHatch,SPECIES,VARIANTS};
 nameEl.value=S.pet.name;
-buildSpecies();buildDurs();renderSide();reset();
+buildSpecies();buildDurs();renderSide();
+/* a refresh in the middle of a session picks the timer up again */
+(function(){const r=saved.run;
+  if(r&&(r.status==="running"||r.status==="paused")&&["focus","short","long"].includes(r.mode)&&r.duration>0){
+    S.mode=r.mode;buildDurs();S.nextBreak=r.nextBreak==="long"?"long":"short";S.override=r.override&&SPECIES[r.override.type]?r.override:null;S.duration=r.duration;
+    if(r.status==="paused"){S.remaining=r.remaining;S.status="paused";updateUI();}
+    else{S.endAt=r.endAt;S.remaining=Math.max(0,r.endAt-Date.now());S.status="running";updateUI();if(S.remaining<=0)complete();}
+  }else reset();
+})();
 var artReady=true;
 startLoop(window);
 })();
