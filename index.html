@@ -109,14 +109,15 @@ html.pf-dark #themeBtn .moon{display:none}html.pf-dark #themeBtn .sun{display:bl
 .text-btn{border:0;background:none;color:var(--muted);font-size:14px;font-weight:600;padding:8px 12px;border-radius:999px}
 /* phone in landscape: pet on the left, timer and buttons on the right */
 @media (orientation:landscape) and (max-height:540px),(min-width:900px) and (min-height:541px){
-  .app:not(.mini){max-width:none;height:100%;min-height:0;padding:8px max(24px,env(safe-area-inset-right)) 8px max(24px,env(safe-area-inset-left));display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-rows:auto repeat(5,auto);align-content:center;column-gap:28px;row-gap:2px;justify-items:center}
+  .app:not(.mini){max-width:none;height:100%;min-height:0;padding:8px max(24px,env(safe-area-inset-right)) 8px max(24px,env(safe-area-inset-left));display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-rows:auto repeat(6,auto);align-content:center;column-gap:28px;row-gap:2px;justify-items:center}
   .app:not(.mini) .bar{grid-column:1 / -1;grid-row:1;margin-bottom:0}
-  .app:not(.mini) .stage{grid-column:1;grid-row:2 / span 5;align-self:center;width:100%;margin:0 !important;transform:scale(1.4);transform-origin:50% 62%}
+  .app:not(.mini) .stage{grid-column:1;grid-row:2 / span 6;align-self:center;width:100%;margin:0 !important;transform:scale(1.4);transform-origin:50% 62%}
   .app:not(.mini) .who{grid-column:2;grid-row:2;margin-top:0}
-  .app:not(.mini) .time{grid-column:2;grid-row:3;font-size:62px;margin-top:4px}
-  .app:not(.mini) .taskline{grid-column:2;grid-row:4;min-height:16px}
-  .app:not(.mini) .status{grid-column:2;grid-row:5;min-height:36px}
-  .app:not(.mini) .actions{grid-column:2;grid-row:6;margin-top:4px;margin-bottom:0}
+  .app:not(.mini) .quick{grid-column:2;grid-row:3;margin:6px 0 0}
+  .app:not(.mini) .time{grid-column:2;grid-row:4;font-size:62px;margin-top:4px}
+  .app:not(.mini) .taskline{grid-column:2;grid-row:5;min-height:16px}
+  .app:not(.mini) .status{grid-column:2;grid-row:6;min-height:36px}
+  .app:not(.mini) .actions{grid-column:2;grid-row:7;margin-top:4px;margin-bottom:0}
   .app:not(.mini) .btn{padding:12px 0}
 }
 @media (orientation:landscape) and (max-height:540px){
@@ -143,7 +144,7 @@ html.pf-dark #themeBtn .moon{display:none}html.pf-dark #themeBtn .sun{display:bl
   .app:not(.mini) .status{font-size:16px;min-height:44px;max-width:34ch}
   .app:not(.mini) .actions{margin-top:12px}
   .app:not(.mini) .btn{width:min(280px,100%);padding:16px 0}
-  .app:not(.mini) .stage{transform:scale(1.75);transform-origin:50% 62%;grid-row:1 / span 6}
+  .app:not(.mini) .stage{transform:scale(1.75);transform-origin:50% 62%;grid-row:1 / span 7}
   .app:not(.mini) .bar{grid-column:2;grid-row:1;width:100%;max-width:320px;margin-bottom:22px}
   .app:not(.mini) .who{margin-top:4px}
 }
@@ -685,7 +686,7 @@ function petSVG(type,G,o,vb){
 }
 
 /* ---------- state ---------- */
-const APP_VERSION="1.0.54 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v54) */
+const APP_VERSION="1.0.55 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v55) */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,keepAud:S.keepAud,ambience:S.ambience,worms:S.worms,seenTip:S.seenTip,run:(S.status==="running"||S.status==="paused")?{mode:S.mode,status:S.status,endAt:S.endAt,remaining:S.remaining,duration:S.duration,nextBreak:S.nextBreak,override:S.override}:null}));}catch(e){}}
