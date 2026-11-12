@@ -754,6 +754,7 @@ function playSample(buf,G,mult,type,native){
 }
 function voice(type,G,mult){
   if(!ac)return;
+  if(ac.state!=="running"){try{ac.resume();}catch(e){}}
   /* a recording made for this growth stage (duck-baby, goose-teen ...) wins; otherwise the adult one, pitched */
   const stg=G<2?"-baby":G<3.2?"-teen":"",own=samples[type+stg]&&samples[type+stg].length?samples[type+stg]:null,pool=own||samples[type];
   if(pool&&pool.length){try{playSample(pool[Math.floor(Math.random()*pool.length)],G,mult,type,!!own);return;}catch(e){}}
@@ -1244,11 +1245,12 @@ function frame(now){
     const pt=peckTip(p.type,G),reach=200+pt.dx+2;
     if(worm.phase==="approach"){
       worm.x-=dt*30;
-      if(worm.x<=reach){worm.x=reach;worm.phase="peck";worm.t=clock;}
+      if(worm.x<=reach){worm.x=reach;worm.phase="peck";worm.t=clock;worm.said=false;}
       wormSvg=drawWorm(worm.x,clock,clamp((clock-worm.t)/.6));
     }else if(worm.phase==="peck"){
       const k=(clock-worm.t)/.55;wormHold=true;
-      if(k>=1){worm.phase="gulp";worm.t=clock;cheep();floatAt(HEART(true),petPct+4,30,2);countWorm();}
+      if(k>=.5&&!worm.said){worm.said=true;cheep();}
+      if(k>=1){worm.phase="gulp";worm.t=clock;floatAt(HEART(true),petPct+4,30,2);countWorm();}
       else{wormPeck=Math.sin(k*Math.PI);if(k<.5)wormSvg=`<g transform="translate(0 ${f(-pt.lift*easeOut(Math.min(1,k*2.4)))})">${drawWorm(worm.x,clock,1)}</g>`;}
     }else if(worm.phase==="gulp"){
       wormHold=true;wormHappy=true;
