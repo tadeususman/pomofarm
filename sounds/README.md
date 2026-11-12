@@ -17,4 +17,4 @@ Extra credits: baby duck "quack" by baby_duck_stu9, "natural duck" by sahidullah
 
 ## Naming per growth stage
 `<type>-baby*.mp3`, `<type>-teen*.mp3` and `<type>-adult*.mp3` (numbered 2..6 for variants) are used for that growth stage when present.
-Plain `<type>*.mp3` is the fallback for every stage (pitched to fit). The chicken currently only has chick peeps; add `chick-adult.mp3` (a hen cluck or rooster crow) to give the grown-up chicken its own voice.
+Plain `<type>*.mp3` is the fallback for every stage (pitched to fit). `chick-adult.mp3` is the grown-up chicken (alex_jauk, Pixabay).
