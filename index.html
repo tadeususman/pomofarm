@@ -39,6 +39,11 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 button,input{font:inherit;color:inherit}
 button{cursor:pointer}
 button:disabled{cursor:not-allowed;opacity:.4}
+/* hand-drawn buttons: the visible shape is a pseudo-element run through a small wobble filter, so the text stays crisp */
+.btn,.species,.quick button,.soundtest button,.dur,.reasons button,.tabs,.tabs button{position:relative;z-index:0}
+.btn::before,.species::before,.quick button::before,.soundtest button::before,.dur::before,.reasons button::before,.tabs::before,.tabs button::before{content:"";position:absolute;inset:calc(var(--bw,0px) * -1);z-index:-1;border-radius:inherit;border:1.6px solid var(--bd,transparent);background:var(--fill,transparent);filter:var(--wf,url(#w1));pointer-events:none}
+.dur:nth-child(2n),.species:nth-child(2n),.quick button:nth-child(2n),.soundtest button:nth-child(2n),.reasons button:nth-child(2n){--wf:url(#w2)}
+.dur:nth-child(3n),.species:nth-child(3n),.quick button:nth-child(3n),.soundtest button:nth-child(3n),.reasons button:nth-child(3n){--wf:url(#w3)}
 :focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 /* no grey/blue tap box on phones; keyboard focus ring stays */
 html{-webkit-tap-highlight-color:rgba(0,0,0,0)}
@@ -63,9 +68,10 @@ html.pf-dark #themeBtn .moon{display:none}html.pf-dark #themeBtn .sun{display:bl
 .icon svg{width:22px;height:22px}
 .badge{position:absolute;right:4px;top:4px;min-width:16px;height:16px;border-radius:8px;background:var(--ink);color:var(--bg);font-size:10px;font-weight:700;display:grid;place-items:center;padding:0 4px}
 .badge:empty{display:none}
-.tabs{display:flex;gap:2px;background:var(--soft2);border-radius:999px;padding:3px}
-.tabs button{border:0;background:transparent;border-radius:999px;padding:6px 16px;font-size:14px;font-weight:600;color:var(--muted)}
-.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.tabs{display:flex;gap:2px;background:none;border-radius:999px;padding:3px;--fill:var(--soft2);--wf:url(#w3)}
+.tabs button{--fill:transparent;--wf:url(#w1);border:0;background:none;border-radius:999px;padding:6px 16px;font-size:14px;font-weight:600;color:var(--muted)}
+.tabs button[aria-pressed="true"]{--fill:var(--ink);color:var(--bg)}
+.tabs button:nth-child(2){--wf:url(#w2)}
 
 .stage{position:relative;width:calc(100% + 40px);margin:56px -20px 0;aspect-ratio:340/120}
 .stage svg.scene{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
@@ -97,9 +103,9 @@ html.pf-dark #themeBtn .moon{display:none}html.pf-dark #themeBtn .sun{display:bl
 .taskline{font-size:14px;color:var(--muted);min-height:20px;text-align:center}
 .status{color:var(--muted);font-size:14.5px;text-align:center;min-height:42px;max-width:30ch;text-wrap:balance}
 .actions{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:10px;width:100%}
-.btn{border:0;border-radius:999px;padding:15px 0;width:min(240px,100%);font-weight:600;font-size:17px;background:var(--ink);color:var(--bg);transition:transform .1s}
+.btn{border:0;border-radius:999px;padding:15px 0;width:min(240px,100%);font-weight:600;font-size:17px;background:none;--fill:var(--ink);--bd:var(--ink);color:var(--bg);transition:transform .1s}
 .btn:active{transform:scale(.97)}
-.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.ghost{--fill:transparent;--bd:var(--line);--bw:1.5px;--wf:url(#w2);color:var(--ink);border:1.5px solid transparent}
 .text-btn{border:0;background:none;color:var(--muted);font-size:14px;font-weight:600;padding:8px 12px;border-radius:999px}
 /* phone in landscape: pet on the left, timer and buttons on the right */
 @media (orientation:landscape) and (max-height:540px),(min-width:900px) and (min-height:541px){
@@ -163,29 +169,29 @@ html.pf-dark #themeBtn .moon{display:none}html.pf-dark #themeBtn .sun{display:bl
 .group{display:flex;flex-direction:column;gap:8px}
 .gl{font-size:13px;font-weight:600;color:var(--muted)}
 .row{display:flex;gap:8px;flex-wrap:wrap}
-.species{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;border:1.5px solid var(--line);background:transparent;border-radius:16px;padding:8px 6px 7px;font-size:13.5px;font-weight:600}
+.species{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;border:1.5px solid transparent;--bw:1.5px;--bd:var(--line);background:none;border-radius:16px;padding:8px 6px 7px;font-size:13.5px;font-weight:600}
 .species svg,.species canvas{width:46px;height:46px;flex:none}
 #speciesRow{flex-wrap:nowrap}
 .quick{display:flex;gap:8px;justify-content:center;margin:10px 0 4px}
 .quick[hidden]{display:none}
-.quick button{display:flex;align-items:center;gap:5px;border:1.5px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:5px 12px 5px 7px;font-size:13px;font-weight:600}
+.quick button{display:flex;align-items:center;gap:5px;border:1.5px solid transparent;--bw:1.5px;--bd:var(--line);background:none;color:var(--muted);border-radius:999px;padding:5px 12px 5px 7px;font-size:13px;font-weight:600}
 .quick button svg{width:24px;height:24px;flex:none}
-.quick button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
-.species[aria-pressed="true"]{border-color:var(--ink)}
+.quick button[aria-pressed="true"]{--bd:var(--ink);color:var(--ink)}
+.species[aria-pressed="true"]{--bd:var(--ink)}
 .note{font-size:13px;color:var(--muted);margin:0}
 .about{border-top:1.5px solid var(--line);padding-top:16px;margin-top:4px}
 .about p{margin:0;font-size:14.5px;line-height:1.5}
 .about ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted);line-height:1.45}
 .soundtest{display:flex;gap:6px;margin:8px 0 2px;flex-wrap:wrap}
-.soundtest button{border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600}
+.soundtest button{border:1.5px solid transparent;--bw:1.5px;--bd:var(--line);background:none;color:var(--ink);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600}
 .about .ver{margin-top:2px;font-size:12px}
 .about a{color:var(--ink);text-underline-offset:3px}
 .devby{display:flex;align-items:center;gap:12px;margin-top:4px;color:var(--muted);font-size:13px;font-weight:600}
 .devby .sonade{height:22px;width:auto;display:block}
 .devby .sonade-link{display:inline-flex;color:inherit;-webkit-tap-highlight-color:transparent}
 .devby .sonade-link:active{opacity:.6}
-.dur{border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
-.dur[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.dur{border:1.5px solid transparent;--bw:1.5px;--bd:var(--line);background:none;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.dur[aria-pressed="true"]{--fill:var(--ink);--bd:var(--ink);color:var(--bg)}
 .field{width:100%;border:1.5px solid var(--line);background:transparent;border-radius:12px;padding:10px 12px;font-size:15px}
 .field:disabled{color:var(--muted)}
 .switch{display:flex;align-items:center;justify-content:space-between;font-size:15px}
@@ -268,8 +274,8 @@ html.rm .sky .bd,html.rm .sky .bd .w{animation:none}
 .dialog h3{font-size:21px;margin:0;line-height:1.2;text-wrap:balance}
 .dialog p{margin:0;color:var(--muted);font-size:14.5px}
 .reasons{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
-.reasons button{border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;font-size:13.5px;font-weight:600}
-.reasons button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.reasons button{border:1.5px solid transparent;--bw:1.5px;--bd:var(--line);background:none;border-radius:999px;padding:5px 12px;font-size:13.5px;font-weight:600}
+.reasons button[aria-pressed="true"]{--fill:var(--ink);--bd:var(--ink);color:var(--bg)}
 @keyframes pop{from{transform:scale(.9);opacity:.3}to{transform:none;opacity:1}}
 .confetti{position:absolute;top:-20px;width:8px;height:10px;border-radius:50%;animation:fall linear forwards;z-index:1}
 @keyframes fall{to{transform:translate(var(--dx),110vh) rotate(540deg);opacity:.2}}
@@ -321,6 +327,7 @@ html.rm .tip{animation:none}
   <p>Check Settings for timer length, sounds, keep-screen-on, motion and light/dark mode. Your pets grow while you focus.</p>
   <div class="row"><button type="button" id="tipOk">Got it</button><button type="button" class="go" id="tipSet">Open settings</button></div>
 </div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><filter id="w1" x="-8%" y="-35%" width="116%" height="170%"><feTurbulence type="fractalNoise" baseFrequency=".03" numOctaves="1" seed="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter><filter id="w2" x="-8%" y="-35%" width="116%" height="170%"><feTurbulence type="fractalNoise" baseFrequency=".036" numOctaves="1" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter><filter id="w3" x="-8%" y="-35%" width="116%" height="170%"><feTurbulence type="fractalNoise" baseFrequency=".042" numOctaves="1" seed="12" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter></defs></svg>
 <div class="app">
   <div class="bar">
     <button type="button" class="icon" id="openFarm" aria-label="My farm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M3 10.5L12 4l9 6.5V20H3z"/><path d="M9.5 20v-5.5h5V20"/></svg><span class="badge" id="farmBadge"></span></button>
@@ -678,7 +685,7 @@ function petSVG(type,G,o,vb){
 }
 
 /* ---------- state ---------- */
-const APP_VERSION="1.0.53 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v53) */
+const APP_VERSION="1.0.54 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v54) */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,keepAud:S.keepAud,ambience:S.ambience,worms:S.worms,seenTip:S.seenTip,run:(S.status==="running"||S.status==="paused")?{mode:S.mode,status:S.status,endAt:S.endAt,remaining:S.remaining,duration:S.duration,nextBreak:S.nextBreak,override:S.override}:null}));}catch(e){}}
