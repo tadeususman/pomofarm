@@ -483,7 +483,7 @@ const SPECIES={
 const PX=50,PY=74;
 const WORLD=s=>`<g transform="translate(${PX} ${PY})">${s}</g>`;
 const formOf=G=>G<2?0:G<3.2?1:2;
-const sizeF=(k,G)=>k===0?lerp(.78,1,seg(G,1,2)):k===1?lerp(.86,1,seg(G,2,3.2)):lerp(.9,1,seg(G,3.2,4));
+const sizeF=(k,G)=>k===0?lerp(.97,1,seg(G,1,2)):k===1?lerp(.86,1,seg(G,2,3.2)):lerp(.9,1,seg(G,3.2,4));
 const sizeOf=G=>sizeF(formOf(G),G);
 const ss=t=>{t=clamp(t);return t*t*(3-2*t);};
 /* when the form changes, the old form fades into the new one (o.mix, driven by the frame loop) */
@@ -535,19 +535,37 @@ function peckTip(type,G){
 function eggShape(){return "M50 30C66 30 76 52 74 68C72 84 62 92 50 92C38 92 28 84 26 68C24 52 34 30 50 30Z";}
 function eggFill(type){return type==="duck"?TINT2:PAPER;}
 const eggScale=(type,c)=>type==="goose"?`<g transform="translate(50 98) scale(1.12) translate(-50 -98)">${c}</g>`:c;
+/* corner-rounded polyline: soft, hand-drawn looking cracks */
+function softPoly(pts,r){
+  let d="";
+  pts.forEach((q,i)=>{
+    if(i===0){d+=`M${q[0]} ${q[1]}`;return;}
+    if(i===pts.length-1){d+=`L${q[0]} ${q[1]}`;return;}
+    const a=pts[i-1],c=pts[i+1];
+    const l1=Math.hypot(q[0]-a[0],q[1]-a[1]),l2=Math.hypot(c[0]-q[0],c[1]-q[1]),k1=Math.min(r,l1/2)/l1,k2=Math.min(r,l2/2)/l2;
+    d+=`L${f(q[0]-(q[0]-a[0])*k1)} ${f(q[1]-(q[1]-a[1])*k1)}Q${q[0]} ${q[1]} ${f(q[0]+(c[0]-q[0])*k2)} ${f(q[1]+(c[1]-q[1])*k2)}`;
+  });
+  return d;
+}
+const ZIG=[[26,68],[33,60],[41,66],[50,58],[59,66],[67,60],[74,68]];
+/* the nest: a dark hollow behind the egg and a woven front rim in front of it */
+function nestBack(){return `<ellipse cx="50" cy="85" rx="37" ry="9" fill="${TINT}" stroke="${LINE}" stroke-width="3"/>`;}
 function nestBowl(){
-  return `<path d="M20 88Q50 110 80 88Q50 96 20 88Z" fill="${TINT}" stroke="${LINE}" stroke-width="3" stroke-linejoin="round"/><path d="M30 94l-4 -4M44 98l-1 -6M58 98l2 -6M70 94l4 -4" stroke="${LINE}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  return `<path d="M13 86Q50 98 87 86Q86 106 50 108Q14 106 13 86Z" fill="${TINT2}" stroke="${LINE}" stroke-width="3" stroke-linejoin="round"/>`
+   +`<path d="M18 94Q50 105 82 94M25 101Q50 109 75 101" fill="none" stroke="${LINE}" stroke-width="1.7" stroke-linecap="round" opacity=".55"/>`
+   +`<path d="M25 91l3 6M37 95l2 6M50 97v6M63 95l-2 6M75 91l-3 6" fill="none" stroke="${LINE}" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>`
+   +`<path d="M13 86l-7 -4M15 91l-8 1M87 86l7 -4M85 91l8 1" fill="none" stroke="${LINE}" stroke-width="2.2" stroke-linecap="round"/>`;
 }
 function drawEgg(type,p,o){
   const t=o.t||0;
   const period=Math.max(1.2,3.4-2*p),ph=t%period,env=ph<.7?Math.sin(ph/.7*Math.PI):0;
   const amp=(o.running?(3+9*p):1.2)*env+(o.tapWob||0);
   const rot=Math.sin(t*22)*amp;
-  const cr=[["M31 60l7 6l6 -8l7 8l7 -7l8 7l6 -5",seg(p,.3,.6)],["M46 66l-2 8l4 5",seg(p,.55,.82)],["M60 62l3 -9l-4 -6",seg(p,.78,.98)]];
+  const cr=[[softPoly(ZIG.slice(1,6),2.6),seg(p,.3,.6)],[softPoly([[41,66],[39,72],[42,77],[40,81]],2),seg(p,.55,.82)],[softPoly([[59,66],[62,60],[60,54],[62,49]],2),seg(p,.78,.98)]];
   let c="";
-  cr.forEach(([d,k])=>{if(k>0)c+=`<path d="${d}" pathLength="1" stroke-dasharray="1" stroke-dashoffset="${(1-k).toFixed(3)}" stroke="${LINE}" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;});
+  cr.forEach(([d,k])=>{if(k>0)c+=`<path d="${d}" pathLength="1" stroke-dasharray="1" stroke-dashoffset="${(1-k).toFixed(3)}" stroke="${LINE}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;});
   const body=`<g transform="rotate(${f(rot)} 50 92)"><path d="${eggShape()}" fill="${eggFill(type)}" stroke="${LINE}" stroke-width="3.2" stroke-linejoin="round"/><path d="M36 50q3 -9 12 -12" fill="none" stroke="${type==="duck"?PAPER:TINT}" stroke-width="3" stroke-linecap="round"/>${c}</g>`;
-  return `<ellipse cx="100" cy="${GROUND+3}" rx="${type==="goose"?44:40}" ry="5" fill="${LINE}" opacity=".1"/>`+WORLD(eggScale(type,body)+nestBowl());
+  return `<ellipse cx="100" cy="${GROUND+3}" rx="${type==="goose"?46:42}" ry="5" fill="${LINE}" opacity=".1"/>`+WORLD(nestBack()+eggScale(type,body)+nestBowl());
 }
 let uidN=0;
 function petParts(type,form,o,G){
@@ -672,21 +690,26 @@ function drawPet(type,G,o){
 function drawHatch(type,h,t,variant){
   const baby=drawPet(type,1,{t,happy:h>.5,variant,noCap:h<.75});
   const sc=easeBack(seg(h,.12,.6)),fill=eggFill(type);
-  const bot="M27 68L35 59L42 67L50 57L58 67L66 59L73 68C72 84 62 92 50 92C38 92 28 84 27 68Z";
-  const top="M0 0L7 -7L14 0L21 -7L27 0C26 -17 12 -22 0 0Z";
-  let o=WORLD(`<path d="${eggShape()}" fill="${TINT}" opacity="0"/>`);
-  o+=`<g transform="translate(100 ${GROUND}) scale(${sc.toFixed(3)}) translate(-100 ${-GROUND})">${baby}</g>`;
-  o+=WORLD(eggScale(type,`<path d="${bot}" fill="${fill}" stroke="${LINE}" stroke-width="3.2" stroke-linejoin="round" opacity="${(1-seg(h,.7,1)).toFixed(2)}"/>`));
-  o+=WORLD(eggScale(type,`<g transform="translate(${f(30+30*h)} ${f(40-46*h+60*h*h)}) rotate(${f(-70*h)} 14 0)" opacity="${(1-seg(h,.5,.9)).toFixed(2)}"><path d="${top}" fill="${fill}" stroke="${LINE}" stroke-width="3.2" stroke-linejoin="round"/></g>`));
-  return o+WORLD(nestBowl());
+  const edge=softPoly(ZIG,1.6),back=edge.replace(/^M[^L]*/,"");
+  const bot=`${edge}C72 84 62 92 50 92C38 92 28 84 26 68Z`;
+  const top=`M74 68C76 52 66 30 50 30C34 30 24 52 26 68${back}Z`;
+  const e=seg(h,.02,.95);
+  const tx=24*e,ty=-30*e+74*e*e,rot=34*e;
+  let o=WORLD(nestBack());
+  const babyG=`<g transform="translate(100 ${GROUND}) scale(${sc.toFixed(3)}) translate(-100 ${-GROUND})">${baby}</g>`,out=h>.78;
+  if(!out)o+=babyG;
+  o+=WORLD(eggScale(type,`<path d="${bot}" fill="${fill}" stroke="${LINE}" stroke-width="3.2" stroke-linejoin="round" opacity="${(1-seg(h,.75,1)).toFixed(2)}"/>`));
+  o+=WORLD(eggScale(type,`<g transform="translate(${f(tx)} ${f(ty)}) rotate(${f(rot)} 50 52)" opacity="${(1-seg(h,.55,.92)).toFixed(2)}"><path d="${top}" fill="${fill}" stroke="${LINE}" stroke-width="3.2" stroke-linejoin="round"/><path d="M36 50q3 -9 12 -12" fill="none" stroke="${type==="duck"?PAPER:TINT}" stroke-width="3" stroke-linecap="round"/></g>`));
+  o+=WORLD(nestBowl());
+  return out?o+babyG:o;
 }
 function petSVG(type,G,o,vb){
-  if(!vb) vb=G<1?(type==="goose"?"56 92 88 94":"58 96 84 90"):G<2?"66 106 68 72":G<3.2?"58 90 88 88":"50 70 100 108";
+  if(!vb) vb=G<1?(type==="goose"?"50 90 100 98":"52 94 96 94"):G<2?"66 106 68 72":G<3.2?"58 90 88 88":"50 70 100 108";
   return `<svg viewBox="${vb}" aria-hidden="true">${G<1?drawEgg(type,G,o||{}):drawPet(type,G,o||{})}</svg>`;
 }
 
 /* ---------- state ---------- */
-const APP_VERSION="1.0.55 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v55) */
+const APP_VERSION="1.0.56 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v56) */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,keepAud:S.keepAud,ambience:S.ambience,worms:S.worms,seenTip:S.seenTip,run:(S.status==="running"||S.status==="paused")?{mode:S.mode,status:S.status,endAt:S.endAt,remaining:S.remaining,duration:S.duration,nextBreak:S.nextBreak,override:S.override}:null}));}catch(e){}}
