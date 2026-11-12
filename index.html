@@ -659,7 +659,7 @@ function petSVG(type,G,o,vb){
 }
 
 /* ---------- state ---------- */
-const APP_VERSION="1.0.38 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v38) */
+const APP_VERSION="1.0.39 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v39) */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,ambience:S.ambience,worms:S.worms,seenTip:S.seenTip,run:(S.status==="running"||S.status==="paused")?{mode:S.mode,status:S.status,endAt:S.endAt,remaining:S.remaining,duration:S.duration,nextBreak:S.nextBreak,override:S.override}:null}));}catch(e){}}
@@ -692,15 +692,16 @@ const durMs=()=>S.mins[S.mode]*60000/speed();
 /* ---------- audio ---------- */
 let ac=null;
 /* Browsers (and some sound cards / Bluetooth speakers) put the audio output to sleep after a few silent seconds, and the first sound afterwards loses its start (a thin "tas").
-   A near-inaudible loop keeps the output awake while the page is open and visible. */
+   A sub-audible 10 Hz signal keeps the output awake while the page is open and visible. */
 let keepNode=null;
 function keepAwake(){
   try{
     if(!ac||ac.state!=="running"||document.visibilityState==="hidden"){if(keepNode&&document.visibilityState==="hidden"){try{keepNode.stop();}catch(e){}keepNode=null;}return;}
     if(keepNode)return;
-    const len=ac.sampleRate,b=ac.createBuffer(1,len,ac.sampleRate),d=b.getChannelData(0);
-    for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*.0006;
-    const n=ac.createBufferSource();n.buffer=b;n.loop=true;n.connect(ac.destination);n.start();keepNode=n;
+    /* 10 Hz sine: far below hearing and below what speakers reproduce, but not digital silence, so the output stays open */
+    const n=ac.createOscillator(),g=ac.createGain();n.type="sine";n.frequency.value=10;
+    g.gain.setValueAtTime(0,ac.currentTime);g.gain.linearRampToValueAtTime(.01,ac.currentTime+1.5);
+    n.connect(g);g.connect(ac.destination);n.start();keepNode=n;
   }catch(e){}
 }
 function ensureAudio(){try{if(!ac){const C=window.AudioContext||window.webkitAudioContext;if(C){ac=new C();ac.onstatechange=keepAwake;}}if(ac&&ac.state==="suspended")ac.resume();if(ac)loadSamples();keepAwake();}catch(e){ac=null;}}
