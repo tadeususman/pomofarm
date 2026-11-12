@@ -659,7 +659,7 @@ function petSVG(type,G,o,vb){
 }
 
 /* ---------- state ---------- */
-const APP_VERSION="1.0.35 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v35) */
+const APP_VERSION="1.0.36 · 12 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v36) */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,ambience:S.ambience,worms:S.worms,seenTip:S.seenTip,run:(S.status==="running"||S.status==="paused")?{mode:S.mode,status:S.status,endAt:S.endAt,remaining:S.remaining,duration:S.duration,nextBreak:S.nextBreak,override:S.override}:null}));}catch(e){}}
@@ -746,7 +746,7 @@ function loadSamples(){
   loadSamples.ready=Promise.all(["chick","duck","goose"].map(async t=>{
     for(const st of ["","-baby","-teen"])for(let v=1;v<=6;v++){
       let got=false;
-      for(const ext of ["mp3","ogg","wav","m4a"]){
+      for(const ext of (st===""&&v===1?["mp3","ogg","wav","m4a"]:["mp3"])){
         try{const r=await fetch(`sounds/${t}${st}${v>1?v:""}.${ext}`);if(!r.ok)continue;(samples[t+st]=samples[t+st]||[]).push(await ac.decodeAudioData(await r.arrayBuffer()));got=true;break;}catch(e){}
       }
       if(!got)break;
@@ -761,8 +761,11 @@ function playSample(buf,G,mult,type,native){
   const tg=clamp(((G||1)-1.6)/2.2),base=native?1:type==="chick"?lerp(1,.9,Math.pow(gr,.8)):lerp(2.1,1,Math.pow(tg,.7)),rate=base*(.96+Math.random()*.08);
   src.playbackRate.value=rate;
   const dur=Math.min(buf.duration/rate,lerp(.6,1.4,gr)),vol=lerp(type==="chick"?.6:.45,.9,gr)*(mult||1);
-  g.gain.setValueAtTime(vol,n);g.gain.setValueAtTime(vol,n+Math.max(0,dur-.15));g.gain.linearRampToValueAtTime(0,n+dur);
-  src.connect(g);g.connect(ac.destination);src.start(n);src.stop(n+dur+.05);
+  /* soft attack (no click on the first sample) and, for the chick, a low-pass that takes the sharp "ts" off the highest harmonics */
+  g.gain.setValueAtTime(0,n);g.gain.linearRampToValueAtTime(vol,n+.012);g.gain.setValueAtTime(vol,n+Math.max(.013,dur-.15));g.gain.linearRampToValueAtTime(0,n+dur);
+  if(type==="chick"){const lp=ac.createBiquadFilter();lp.type="lowpass";lp.frequency.value=lerp(6200,4600,Math.pow(gr,.8));lp.Q.value=.5;src.connect(lp);lp.connect(g);}
+  else src.connect(g);
+  g.connect(ac.destination);src.start(n);src.stop(n+dur+.05);
 }
 function voice(type,G,mult){
   if(!ac)return;
