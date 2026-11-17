@@ -305,6 +305,10 @@ html.rm .sky .bd,html.rm .sky .bd .w{animation:none}
 .pf-dark .farm svg [stroke="#23221F"]{stroke:#23221F}
 .pf-dark .farm svg [stroke="#FAFAF9"]{stroke:#FAFAF9}
 .pf-dark .farm svg [stroke="#77766F"]{stroke:#77766F}
+.pf-dark .stage .nb{fill:#1C1B1A}
+.pf-dark .stage .nw{fill:#3A3835}
+.pf-dark .stage .eg{fill:#34332F}
+.pf-dark .stage .eg2{fill:#413F3A}
 
 /* Reduced motion is a setting in Pomofarm (not the system flag, which some phones switch on in battery saver) */
 html.rm .spark,html.rm .confetti,html.rm .float{display:none}
@@ -549,9 +553,9 @@ function softPoly(pts,r){
 }
 const ZIG=[[26,68],[33,60],[41,66],[50,58],[59,66],[67,60],[74,68]];
 /* the nest: a dark hollow behind the egg and a woven front rim in front of it */
-function nestBack(){return `<ellipse cx="50" cy="85" rx="37" ry="9" fill="${TINT}" stroke="${LINE}" stroke-width="3"/>`;}
+function nestBack(){return `<ellipse class="nb" cx="50" cy="85" rx="37" ry="9" fill="${TINT}" stroke="${LINE}" stroke-width="3"/>`;}
 function nestBowl(){
-  return `<path d="M13 86Q50 98 87 86Q86 106 50 108Q14 106 13 86Z" fill="${TINT2}" stroke="${LINE}" stroke-width="3" stroke-linejoin="round"/>`
+  return `<path class="nw" d="M13 86Q50 98 87 86Q86 106 50 108Q14 106 13 86Z" fill="${TINT2}" stroke="${LINE}" stroke-width="3" stroke-linejoin="round"/>`
    +`<path d="M18 94Q50 105 82 94M25 101Q50 109 75 101" fill="none" stroke="${LINE}" stroke-width="1.7" stroke-linecap="round" opacity=".55"/>`
    +`<path d="M25 91l3 6M37 95l2 6M50 97v6M63 95l-2 6M75 91l-3 6" fill="none" stroke="${LINE}" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>`
    +`<path d="M13 86l-7 -4M15 91l-8 1M87 86l7 -4M85 91l8 1" fill="none" stroke="${LINE}" stroke-width="2.2" stroke-linecap="round"/>`;
@@ -564,7 +568,7 @@ function drawEgg(type,p,o){
   const cr=[[softPoly(ZIG.slice(1,6),2.6),seg(p,.3,.6)],[softPoly([[41,66],[39,72],[42,77],[40,81]],2),seg(p,.55,.82)],[softPoly([[59,66],[62,60],[60,54],[62,49]],2),seg(p,.78,.98)]];
   let c="";
   cr.forEach(([d,k])=>{if(k>0)c+=`<path d="${d}" pathLength="1" stroke-dasharray="1" stroke-dashoffset="${(1-k).toFixed(3)}" stroke="${LINE}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;});
-  const body=`<g transform="rotate(${f(rot)} 50 92)"><path d="${eggShape()}" fill="${eggFill(type)}" stroke="${LINE}" stroke-width="3.2" stroke-linejoin="round"/><path d="M36 50q3 -9 12 -12" fill="none" stroke="${type==="duck"?PAPER:TINT}" stroke-width="3" stroke-linecap="round"/>${c}</g>`;
+  const body=`<g transform="rotate(${f(rot)} 50 92)"><path class="${type==="duck"?"eg2":"eg"}" d="${eggShape()}" fill="${eggFill(type)}" stroke="${LINE}" stroke-width="3.2" stroke-linejoin="round"/><path d="M36 50q3 -9 12 -12" fill="none" stroke="${type==="duck"?PAPER:TINT}" stroke-width="3" stroke-linecap="round"/>${c}</g>`;
   return `<ellipse cx="100" cy="${GROUND+3}" rx="${type==="goose"?46:42}" ry="5" fill="${LINE}" opacity=".1"/>`+WORLD(nestBack()+eggScale(type,body)+nestBowl());
 }
 let uidN=0;
@@ -698,8 +702,8 @@ function drawHatch(type,h,t,variant){
   let o=WORLD(nestBack());
   const babyG=`<g transform="translate(100 ${GROUND}) scale(${sc.toFixed(3)}) translate(-100 ${-GROUND})">${baby}</g>`,out=h>.78;
   if(!out)o+=babyG;
-  o+=WORLD(eggScale(type,`<path d="${bot}" fill="${fill}" stroke="${LINE}" stroke-width="3.2" stroke-linejoin="round" opacity="${(1-seg(h,.75,1)).toFixed(2)}"/>`));
-  o+=WORLD(eggScale(type,`<g transform="translate(${f(tx)} ${f(ty)}) rotate(${f(rot)} 50 52)" opacity="${(1-seg(h,.55,.92)).toFixed(2)}"><path d="${top}" fill="${fill}" stroke="${LINE}" stroke-width="3.2" stroke-linejoin="round"/><path d="M36 50q3 -9 12 -12" fill="none" stroke="${type==="duck"?PAPER:TINT}" stroke-width="3" stroke-linecap="round"/></g>`));
+  o+=WORLD(eggScale(type,`<path class="${type==="duck"?"eg2":"eg"}" d="${bot}" fill="${fill}" stroke="${LINE}" stroke-width="3.2" stroke-linejoin="round" opacity="${(1-seg(h,.75,1)).toFixed(2)}"/>`));
+  o+=WORLD(eggScale(type,`<g transform="translate(${f(tx)} ${f(ty)}) rotate(${f(rot)} 50 52)" opacity="${(1-seg(h,.55,.92)).toFixed(2)}"><path class="${type==="duck"?"eg2":"eg"}" d="${top}" fill="${fill}" stroke="${LINE}" stroke-width="3.2" stroke-linejoin="round"/><path d="M36 50q3 -9 12 -12" fill="none" stroke="${type==="duck"?PAPER:TINT}" stroke-width="3" stroke-linecap="round"/></g>`));
   o+=WORLD(nestBowl());
   return out?o+babyG:o;
 }
@@ -709,7 +713,7 @@ function petSVG(type,G,o,vb){
 }
 
 /* ---------- state ---------- */
-const APP_VERSION="1.0.62 · 17 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v62) */
+const APP_VERSION="1.0.63 · 17 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v63) */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,keepAud:S.keepAud,ambience:S.ambience,worms:S.worms,seenTip:S.seenTip,run:(S.status==="running"||S.status==="paused")?{mode:S.mode,status:S.status,endAt:S.endAt,remaining:S.remaining,duration:S.duration,nextBreak:S.nextBreak,override:S.override}:null}));}catch(e){}}
