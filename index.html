@@ -709,7 +709,7 @@ function petSVG(type,G,o,vb){
 }
 
 /* ---------- state ---------- */
-const APP_VERSION="1.0.61 · 17 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v61) */
+const APP_VERSION="1.0.62 · 17 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v62) */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,keepAud:S.keepAud,ambience:S.ambience,worms:S.worms,seenTip:S.seenTip,run:(S.status==="running"||S.status==="paused")?{mode:S.mode,status:S.status,endAt:S.endAt,remaining:S.remaining,duration:S.duration,nextBreak:S.nextBreak,override:S.override}:null}));}catch(e){}}
@@ -984,7 +984,7 @@ function buildDurs(){
 /* ---------- actions ---------- */
 function setMode(m){S.mode=m;if(m==="focus")S.override=null;buildDurs();reset();}
 function reset(){S.status="idle";S.remaining=durMs();S.duration=durMs();hideOverlay();updateUI();save();}
-function start(){ensureAudio();startChime();if(S.mode==="focus")S.override=null;worm.phase="none";worm.next=clock+20+Math.random()*20;S.duration=durMs();S.remaining=S.duration;S.endAt=Date.now()+S.duration;S.status="running";updateUI();save();}
+function start(){ensureAudio();if(S.mode==="focus"){startChime();S.override=null;}worm.phase="none";worm.next=clock+20+Math.random()*20;S.duration=durMs();S.remaining=S.duration;S.endAt=Date.now()+S.duration;S.status="running";updateUI();save();}
 function pause(){S.remaining=Math.max(0,S.endAt-Date.now());S.status="paused";updateUI();save();}
 function resume(){S.endAt=Date.now()+S.remaining;S.status="running";updateUI();save();}
 let confirmTimer=null;
