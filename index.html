@@ -418,6 +418,7 @@ html.rm .tip{animation:none}
   <div class="group"><label class="gl" for="task">Focusing on (optional)</label><input class="field" id="task" maxlength="60" placeholder="e.g. Review the GL module" autocomplete="off"></div>
   <div class="group"><span class="gl">Theme</span><div class="row theme-row" id="themeRow"><button type="button" class="dur" data-theme-pick="auto">Auto</button><button type="button" class="dur" data-theme-pick="light">Light</button><button type="button" class="dur" data-theme-pick="dark">Dark</button></div></div>
   <div class="group"><span class="gl">Motion</span><div class="row"><button type="button" class="dur" data-motion-pick="full">Full</button><button type="button" class="dur" data-motion-pick="reduced">Reduced</button></div><p class="note">Some phones turn system animations off in battery saver. Pomofarm keeps its animations on unless you pick Reduced here.</p></div>
+  <label class="switch" for="mute">Silent mode (turn all sound off)<input type="checkbox" id="mute"></label>
   <label class="switch" for="ambience">Farm ambience sound in My farm<input type="checkbox" id="ambience"></label>
   <label class="switch" for="keepAud">Keep sound ready (stops the first-click pop, may add a faint hiss)<input type="checkbox" id="keepAud"></label>
   <label class="switch" for="keepOn">Keep screen on while the timer runs<input type="checkbox" id="keepOn"></label>
@@ -713,10 +714,10 @@ function petSVG(type,G,o,vb){
 }
 
 /* ---------- state ---------- */
-const APP_VERSION="1.0.64 · 17 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v64) */
+const APP_VERSION="1.0.65 · 20 Nov 2026"; /* keep in step with CACHE in sw.js (pomofarm-v65) */
 const KEY="focusPets.v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,keepAud:S.keepAud,ambience:S.ambience,worms:S.worms,seenTip:S.seenTip,run:(S.status==="running"||S.status==="paused")?{mode:S.mode,status:S.status,endAt:S.endAt,remaining:S.remaining,duration:S.duration,nextBreak:S.nextBreak,override:S.override}:null}));}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({pet:S.pet,farm:S.farm,log:S.log,reasons:S.reasons,mins:S.mins,lost:S.lost,released:S.released||0,rounds:S.rounds,theme:S.theme,motion:S.motion,keepOn:S.keepOn,keepAud:S.keepAud,mute:S.mute,ambience:S.ambience,worms:S.worms,seenTip:S.seenTip,run:(S.status==="running"||S.status==="paused")?{mode:S.mode,status:S.status,endAt:S.endAt,remaining:S.remaining,duration:S.duration,nextBreak:S.nextBreak,override:S.override}:null}));}catch(e){}}
 const saved=load();
 function newPet(type){return {type,name:SPECIES[type].def,sessions:0,variant:randomVariant()};}
 const S={
@@ -724,6 +725,7 @@ const S={
   keepOn:saved.keepOn!==false,
   keepAud:saved.keepAud===true,
   ambience:saved.ambience!==false,
+  mute:saved.mute===true,
   mode:"focus",status:"idle",fast:false,duration:0,endAt:0,remaining:0,
   pet:saved.pet&&SPECIES[saved.pet.type]?Object.assign({variant:randomVariant()},saved.pet):newPet("chick"),
   farm:Array.isArray(saved.farm)?saved.farm.filter(p=>SPECIES[p.type]):[],
@@ -761,6 +763,9 @@ function keepAwake(){
     n.connect(g);g.connect(ac.destination);n.start();keepNode=n;
   }catch(e){}
 }
+let masterG=null;
+function master(){if(!masterG||masterG.context!==ac){masterG=ac.createGain();masterG.gain.value=S.mute?0:1;masterG.connect(ac.destination);}return masterG;}
+function applyMute(){try{if(masterG)masterG.gain.setTargetAtTime(S.mute?0:1,ac.currentTime,.02);}catch(e){}}
 function ensureAudio(){try{if(!ac){const C=window.AudioContext||window.webkitAudioContext;if(C){ac=new C();ac.onstatechange=keepAwake;}}if(ac&&ac.state==="suspended")ac.resume();if(ac)loadSamples();keepAwake();}catch(e){ac=null;}}
 document.addEventListener("visibilitychange",()=>{keepAwake();});
 function tone(fr,at,len,vol,type,slide,bp){
@@ -769,7 +774,7 @@ function tone(fr,at,len,vol,type,slide,bp){
   g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(vol,at+.01);g.gain.exponentialRampToValueAtTime(.0001,at+len);
   let out=o;
   if(bp){const f=ac.createBiquadFilter();f.type="bandpass";f.frequency.value=bp;f.Q.value=2.2;o.connect(f);out=f;}
-  out.connect(g).connect(ac.destination);o.start(at);o.stop(at+len+.05);
+  out.connect(g).connect(master());o.start(at);o.stop(at+len+.05);
 }
 function startChime(){if(!ac)return;try{const n=ac.currentTime+.02;tone(523.3,n,.28,.13,"sine");tone(784,n+.11,.4,.13,"sine");tone(1568,n+.11,.12,.03,"sine");}catch(e){}}
 function chime(){if(!ac)return;try{const n=ac.currentTime;[659.3,880,1046.5].forEach((fr,i)=>tone(fr,n+i*.18,1.3,.16));}catch(e){}}
@@ -779,7 +784,7 @@ function noiseBurst(t,len,vol,fr,q){
   const s=ac.createBufferSource();s.buffer=noiseBuf;
   const bp=ac.createBiquadFilter();bp.type="bandpass";bp.frequency.value=fr;bp.Q.value=q||1;
   const g=ac.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+len);
-  s.connect(bp);bp.connect(g);g.connect(ac.destination);s.start(t);s.stop(t+len+.02);
+  s.connect(bp);bp.connect(g);g.connect(master());s.start(t);s.stop(t+len+.02);
 }
 /* one animal "syllable": pitch contour + vocal-tract formants + roughness (AM) + vibrato */
 function vox(o){
@@ -807,7 +812,7 @@ function vox(o){
     const lfo=ac.createOscillator(),ld=ac.createGain();lfo.frequency.value=o.vib[0];ld.gain.value=o.vib[1];
     lfo.connect(ld);ld.connect(osc.detune);lfo.start(t);lfo.stop(t+L+.05);
   }
-  src.connect(g);g.connect(ac.destination);osc.start(t);osc.stop(t+L+.05);
+  src.connect(g);g.connect(master());osc.start(t);osc.stop(t+L+.05);
 }
 /* optional real recordings: put chick.mp3 / duck.mp3 / goose.mp3 (or .ogg/.wav) in /sounds; otherwise the synth below is used */
 const samples={};
@@ -837,7 +842,7 @@ function playSample(buf,G,mult,type,native){
   g.gain.setValueAtTime(0,n);g.gain.linearRampToValueAtTime(vol,n+.012);g.gain.setValueAtTime(vol,n+Math.max(.013,dur-.15));g.gain.linearRampToValueAtTime(0,n+dur);
   if(type==="chick"&&!native){const lp=ac.createBiquadFilter();lp.type="lowpass";lp.frequency.value=lerp(6200,4600,Math.pow(gr,.8));lp.Q.value=.5;src.connect(lp);lp.connect(g);}
   else src.connect(g);
-  g.connect(ac.destination);src.start(n);src.stop(n+dur+.05);
+  g.connect(master());src.start(n);src.stop(n+dur+.05);
 }
 function voice(type,G,mult){
   if(!ac)return;
@@ -1488,13 +1493,14 @@ function farmOpen(){return $("#farmSheet").classList.contains("on");}
 function ambOn(){
   if(!S.ambience||!ac||amb)return;
   if(!ambBuf){if(!ambTried)loadAmb().then(()=>{if(ambBuf&&farmOpen())ambOn();});return;}
-  try{const t=ac.currentTime,src=ac.createBufferSource(),g=ac.createGain();src.buffer=ambBuf;src.loop=true;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.3,t+2.6);src.connect(g);g.connect(ac.destination);src.start(t);amb={src,g};}catch(e){amb=null;}
+  try{const t=ac.currentTime,src=ac.createBufferSource(),g=ac.createGain();src.buffer=ambBuf;src.loop=true;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.3,t+2.6);src.connect(g);g.connect(master());src.start(t);amb={src,g};}catch(e){amb=null;}
 }
 function ambOff(){
   if(!amb||!ac)return;const {src,g}=amb;amb=null;
   try{const t=ac.currentTime;g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(0,t+1.8);src.stop(t+1.9);}catch(e){}
 }
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")ambOff();else if(farmOpen())ambOn();});
+const muteEl=$("#mute");muteEl.checked=S.mute;muteEl.addEventListener("change",()=>{S.mute=muteEl.checked;save();applyMute();});
 const ambEl=$("#ambience");ambEl.checked=S.ambience;
 ambEl.addEventListener("change",()=>{S.ambience=ambEl.checked;save();if(!S.ambience)ambOff();});
 /* screen wake lock: the screen stays on while a session runs (released when paused, idle or hidden) */
